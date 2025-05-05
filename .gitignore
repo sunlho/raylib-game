@@ -398,7 +398,7 @@ FodyWeavers.xsd
 *.sln.iml
 Makefile
 /*.sln
+.vscode/
 
-
-build/*
+build/
 CMakeUserPresets.json

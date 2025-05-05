@@ -1,0 +1,13 @@
+{
+  "files.associations": {
+    "*.wxs": "javascript",
+    "*.cjson": "jsonc",
+    "*.wxss": "css",
+    "*.css": "css",
+    "*.json": "jsonc",
+    "*.js": "javascript",
+    "flecs.h": "c",
+    "tmx-loader.h": "c",
+    "utility": "c"
+  }
+}

@@ -1,83 +1,27 @@
+#include "utils.h"
 #include "raylib.h"
 #include "tmx.h"
 #define RAYLIB_TMX_IMPLEMENTATION
 #include "tmx-loader.h"
-#include <math.h>
 #include <stdio.h>
+#include <flecs.h>
 
-static const char* get_asset_path(const char* relative_path) {
-    static char full_path[512];
-    snprintf(full_path, sizeof(full_path), "%s%s", ASSETS_PATH, relative_path);
-    return full_path;
-}
-
-static Vector2 get_movement_input(float speed)
+typedef struct
 {
-    static int lastHorizontalKey = 0;
-    static int lastVerticalKey = 0;
+    float x, y;
+} Position, Velocity;
 
-    Vector2 dir = { 0.0f, 0.0f };
+void Move(ecs_iter_t *it)
+{
+    Position *p = ecs_field(it, Position, 0);
+    Velocity *v = ecs_field(it, Velocity, 1);
 
-    if (IsKeyPressed(KEY_RIGHT) || IsKeyPressed(KEY_D)) lastHorizontalKey = KEY_RIGHT;
-    if (IsKeyPressed(KEY_LEFT) || IsKeyPressed(KEY_A)) lastHorizontalKey = KEY_LEFT;
-
-    bool rightDown = IsKeyDown(KEY_RIGHT) || IsKeyDown(KEY_D);
-    bool leftDown = IsKeyDown(KEY_LEFT) || IsKeyDown(KEY_A);
-
-    if (rightDown && leftDown)
+    for (int i = 0; i < it->count; i++)
     {
-        dir.x = (lastHorizontalKey == KEY_RIGHT) ? 1.0f : -1.0f;
+        p[i].x += v[i].x;
+        p[i].y += v[i].y;
     }
-    else if (rightDown)
-    {
-        dir.x = 1.0f;
-        lastHorizontalKey = KEY_RIGHT;
-    }
-    else if (leftDown)
-    {
-        dir.x = -1.0f;
-        lastHorizontalKey = KEY_LEFT;
-    }
-    else
-    {
-        lastHorizontalKey = 0;
-    }
-
-    if (IsKeyPressed(KEY_UP) || IsKeyPressed(KEY_W)) lastVerticalKey = KEY_UP;
-    if (IsKeyPressed(KEY_DOWN) || IsKeyPressed(KEY_S)) lastVerticalKey = KEY_DOWN;
-
-    bool upDown = IsKeyDown(KEY_UP) || IsKeyDown(KEY_W);
-    bool downDown = IsKeyDown(KEY_DOWN) || IsKeyDown(KEY_S);
-
-    if (upDown && downDown)
-    {
-        dir.y = (lastVerticalKey == KEY_UP) ? -1.0f : 1.0f;
-    }
-    else if (upDown)
-    {
-        dir.y = -1.0f;
-        lastVerticalKey = KEY_UP;
-    }
-    else if (downDown)
-    {
-        dir.y = 1.0f;
-        lastVerticalKey = KEY_DOWN;
-    }
-    else
-    {
-        lastVerticalKey = 0;
-    }
-
-    float length = sqrtf(dir.x * dir.x + dir.y * dir.y);
-    if (length > 0.0f)
-    {
-        dir.x = (dir.x / length) * speed;
-        dir.y = (dir.y / length) * speed;
-    }
-
-    return dir;
 }
-
 
 int main(void)
 {
@@ -86,19 +30,18 @@ int main(void)
 
     InitWindow(screenWidth, screenHeight, "[raylib-tmx] example");
 
-    tmx_map* map = LoadTMX(get_asset_path("island.tmx"));
+    tmx_map *map = LoadTMX(get_asset_path("island.tmx"));
 
-    if (!map) {
-        tmx_perror("Cannot load map");
+    if (!map)
+    {
+        TraceLog(LOG_ERROR, "Failed to load map: %s", get_asset_path("island.tmx"));
         return 1;
     }
 
-    Texture2D scarfy = LoadTexture(get_asset_path("scarfy.png"));
-	scarfy.width /= 3;
-	scarfy.height /= 3;
-
-    Vector2 position = { 350.0f, 150.0f };
-    Rectangle frameRec = { 0.0f, 0.0f, (float)scarfy.width / 6, (float)scarfy.height };
+    Texture2D playerTexture = LoadTexture(get_asset_path("scarfy.png"));
+    playerTexture.width /= 3;
+    playerTexture.height /= 3;
+    Rectangle frameRec = {0.0f, 0.0f, (float)playerTexture.width / 6, (float)playerTexture.height};
     int currentFrame = 0;
 
     int framesCounter = 0;
@@ -109,22 +52,40 @@ int main(void)
 
     SetTargetFPS(60);
 
-    while (!WindowShouldClose())
+    ecs_world_t *world = ecs_init();
+    ECS_TAG(world, PlayerTag);
+    ECS_COMPONENT(world, Position);
+    ECS_COMPONENT(world, Velocity);
+    ECS_SYSTEM(world, Move, EcsOnUpdate, Position, Velocity);
+
+    ecs_entity_t player = ecs_new(world);
+    ecs_set(world, player, Position, {350.0f, 150.0f});
+    ecs_set(world, player, Velocity, {0.0f, 0.0f});
+    ecs_add(world, player, PlayerTag);
+
+    while (!WindowShouldClose() && ecs_progress(world, GetFrameTime()))
     {
         Vector2 move = get_movement_input(moveSpeed);
-
+        ecs_set(world, player, Velocity, {move.x, move.y});
         bool isMoving = (move.x != 0.0f || move.y != 0.0f);
 
-        if (move.x > 0) facingRight = true;
-        else if (move.x < 0) facingRight = false;
+        if (move.x > 0)
+            facingRight = true;
+        else if (move.x < 0)
+            facingRight = false;
 
-        position.x += move.x;
-        position.y += move.y;
-
-        if (position.x < 0) position.x = 0;
-        if (position.y < 0) position.y = 0;
-        if (position.x + frameRec.width > screenWidth)  position.x = screenWidth - frameRec.width;
-        if (position.y + frameRec.height > screenHeight) position.y = screenHeight - frameRec.height;
+        const Position *p = ecs_get(world, player, Position);
+        float x = p->x;
+        float y = p->y;
+        if (x < 0)
+            x = 0;
+        if (y < 0)
+            y = 0;
+        if (x + frameRec.width > screenWidth)
+            x = screenWidth - frameRec.width;
+        if (y + frameRec.height > screenHeight)
+            y = screenHeight - frameRec.height;
+        ecs_set(world, player, Position, {x, y});
 
         if (isMoving)
         {
@@ -132,10 +93,7 @@ int main(void)
             if (framesCounter >= (60 / framesSpeed))
             {
                 framesCounter = 0;
-                currentFrame++;
-
-                if (currentFrame > 5) currentFrame = 0;
-
+                currentFrame = (currentFrame + 1) % 6;
                 frameRec.x = (float)currentFrame * frameRec.width;
             }
         }
@@ -145,28 +103,29 @@ int main(void)
             framesCounter = 0;
             frameRec.x = 0;
         }
+
         BeginDrawing();
         ClearBackground(RAYWHITE);
         DrawTMX(map, 0, 0, WHITE);
 
         if (facingRight)
         {
-            DrawTextureRec(scarfy, frameRec, position, WHITE);
+            DrawTextureRec(playerTexture, frameRec, (Vector2){p->x, p->y}, WHITE);
         }
         else
         {
             Rectangle flipped = frameRec;
             flipped.width = -frameRec.width;
             flipped.x += frameRec.width;
-            DrawTextureRec(scarfy, flipped, position, WHITE);
+            DrawTextureRec(playerTexture, flipped, (Vector2){p->x, p->y}, WHITE);
         }
-
 
         EndDrawing();
     }
 
+    ecs_fini(world);
     UnloadTMX(map);
-    UnloadTexture(scarfy);
+    UnloadTexture(playerTexture);
     CloseWindow();
 
     return 0;

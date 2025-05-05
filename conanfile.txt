@@ -1,6 +1,7 @@
 [requires]
 raylib/5.5
 tmx/1.10.0
+flecs/4.0.4
 
 [generators]
 CMakeDeps
