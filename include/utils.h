@@ -1,22 +1,24 @@
 #include "raylib.h"
 #include <math.h>
 
-static const char* get_asset_path(const char* relative_path) {
-  static char full_path[512];
-  snprintf(full_path, sizeof(full_path), "%s%s", ASSETS_PATH, relative_path);
-  return full_path;
+static const char *get_asset_path(const char *relative_path)
+{
+    static char full_path[512];
+    snprintf(full_path, sizeof(full_path), "%s%s", ASSETS_PATH, relative_path);
+    return full_path;
 }
-
 
 static Vector2 get_movement_input(float speed)
 {
     static int lastHorizontalKey = 0;
     static int lastVerticalKey = 0;
 
-    Vector2 dir = { 0.0f, 0.0f };
+    Vector2 dir = {0.0f, 0.0f};
 
-    if (IsKeyPressed(KEY_RIGHT) || IsKeyPressed(KEY_D)) lastHorizontalKey = KEY_RIGHT;
-    if (IsKeyPressed(KEY_LEFT) || IsKeyPressed(KEY_A)) lastHorizontalKey = KEY_LEFT;
+    if (IsKeyPressed(KEY_RIGHT) || IsKeyPressed(KEY_D))
+        lastHorizontalKey = KEY_RIGHT;
+    if (IsKeyPressed(KEY_LEFT) || IsKeyPressed(KEY_A))
+        lastHorizontalKey = KEY_LEFT;
 
     bool rightDown = IsKeyDown(KEY_RIGHT) || IsKeyDown(KEY_D);
     bool leftDown = IsKeyDown(KEY_LEFT) || IsKeyDown(KEY_A);
@@ -40,8 +42,10 @@ static Vector2 get_movement_input(float speed)
         lastHorizontalKey = 0;
     }
 
-    if (IsKeyPressed(KEY_UP) || IsKeyPressed(KEY_W)) lastVerticalKey = KEY_UP;
-    if (IsKeyPressed(KEY_DOWN) || IsKeyPressed(KEY_S)) lastVerticalKey = KEY_DOWN;
+    if (IsKeyPressed(KEY_UP) || IsKeyPressed(KEY_W))
+        lastVerticalKey = KEY_UP;
+    if (IsKeyPressed(KEY_DOWN) || IsKeyPressed(KEY_S))
+        lastVerticalKey = KEY_DOWN;
 
     bool upDown = IsKeyDown(KEY_UP) || IsKeyDown(KEY_W);
     bool downDown = IsKeyDown(KEY_DOWN) || IsKeyDown(KEY_S);
@@ -73,4 +77,15 @@ static Vector2 get_movement_input(float speed)
     }
 
     return dir;
+}
+
+void DrawRenderTextureFixed(RenderTexture2D target, int posX, int posY, Color tint)
+{
+    DrawTexturePro(
+        target.texture,
+        (Rectangle){0, 0, (float)target.texture.width, -(float)target.texture.height},
+        (Rectangle){(float)posX, (float)posY, (float)target.texture.width, (float)target.texture.height},
+        (Vector2){0, 0},
+        0.0f,
+        tint);
 }
