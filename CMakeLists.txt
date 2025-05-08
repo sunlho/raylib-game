@@ -7,16 +7,11 @@ find_package(raylib REQUIRED)
 find_package(tmx REQUIRED)
 find_package(flecs REQUIRED)
 
+add_executable(${PROJECT_NAME} src/main.c src/tmx-loader.c)
+target_include_directories(${PROJECT_NAME} PRIVATE include src)
 
-add_library(tmx-loader STATIC src/tmx-loader.c)
-target_include_directories(tmx-loader PUBLIC include)
 
-add_executable(${PROJECT_NAME} src/main.c)
-target_include_directories(${PROJECT_NAME} PRIVATE include)
-
-target_link_libraries(tmx-loader PRIVATE raylib tmx flecs::flecs_static)
-
-target_link_libraries(${PROJECT_NAME} PRIVATE raylib tmx flecs::flecs_static tmx-loader)
+target_link_libraries(${PROJECT_NAME} PRIVATE raylib tmx flecs::flecs_static)
 
 if(CMAKE_BUILD_TYPE STREQUAL "Debug")
     set(ASSETS_PATH "${CMAKE_SOURCE_DIR}/assets")
@@ -26,4 +21,5 @@ else()
 endif()
 
 target_compile_definitions(${PROJECT_NAME} PRIVATE
-    "ASSETS_PATH=\"${ASSETS_PATH}/\"")
+    ASSETS_PATH="${ASSETS_PATH}/"
+)
