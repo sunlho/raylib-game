@@ -33,8 +33,8 @@
 #ifndef INCLUDE_RAYLIB_TMX_H_
 #define INCLUDE_RAYLIB_TMX_H_
 
-#include "raylib.h"
-#include "tmx.h"
+#include <raylib.h>
+#include <tmx.h>
 
 // TMX functions
 tmx_map *LoadTMX(const char *fileName);                                              // Load a Tiled .tmx tile map

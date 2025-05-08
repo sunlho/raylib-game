@@ -1,14 +1,17 @@
-#include "utils.h"
-#include "raylib.h"
-#include "tmx.h"
-#define RAYLIB_TMX_IMPLEMENTATION
+#include <raylib.h>
+#include <tmx.h>
 #include <stdio.h>
 #include <flecs.h>
+#include "utils.h"
+#define RAYLIB_TMX_IMPLEMENTATION
 #include "tmx-loader.h"
 #include "ecs/systems/movement.h"
 #include "ecs/components/basic.h"
 #include "ecs/components/player.h"
 #include "ecs/components/tile-collider.h"
+#include "ecs/entities/collision.h"
+
+#define TILE_COLLIDER_GROUP "TileColliderGroup"
 
 typedef struct
 {
@@ -40,22 +43,15 @@ void DrawTmxTileCollision(tmx_object *collision, int posX, int posY)
 {
     Vector2 points[8];
     int pointCount = 0;
-
-    ecs_entity_t collider = ecs_new(global_ctx.world);
-    ecs_add(global_ctx.world, collider, Position);
-    ecs_set(global_ctx.world, collider, Position, {posX, posY});
-    ecs_add(global_ctx.world, collider, TileCollider);
-
     while (collision)
     {
-
         points[pointCount].x = collision->x;
         points[pointCount].y = collision->y;
         pointCount++;
         collision = collision->next;
     }
-
-    ecs_set(global_ctx.world, collider, TileCollider, {posX, posY, points});
+    ecs_entity_t group = ecs_lookup(global_ctx.world, TILE_COLLIDER_GROUP);
+    CreateCollisionEntity(global_ctx.world, (Vector2){posX, posY}, points, group);
 }
 
 int main(void)
@@ -80,13 +76,15 @@ int main(void)
     ECS_IMPORT(world, Movement);
     global_ctx.world = world;
 
-    ecs_entity_t player = ecs_new(world);
+    ecs_entity_t player = ecs_entity(world, {.name = "Player"});
     global_ctx.player = player;
 
     ecs_add(world, player, Position);
     ecs_add(world, player, Velocity);
     ecs_add(world, player, PlayerTag);
     ecs_set(world, player, Velocity, {0.0f, 0.0f});
+
+    ecs_entity_t group = ecs_entity(world, {.name = TILE_COLLIDER_GROUP});
 
     Texture2D playerTexture = LoadTexture(get_asset_path("scarfy.png"));
     ecs_set(world, player, PlayerTag, {playerTexture});
