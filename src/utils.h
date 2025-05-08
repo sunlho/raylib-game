@@ -1,3 +1,6 @@
+#ifndef UTILS_H
+#define UTILS_H
+
 #include "raylib.h"
 #include <math.h>
 
@@ -89,3 +92,5 @@ void DrawRenderTextureFixed(RenderTexture2D target, int posX, int posY, Color ti
         0.0f,
         tint);
 }
+
+#endif // UTILS_H

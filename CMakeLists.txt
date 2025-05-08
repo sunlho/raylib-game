@@ -7,6 +7,7 @@ find_package(raylib REQUIRED)
 find_package(tmx REQUIRED)
 find_package(flecs REQUIRED)
 
+
 add_library(tmx-loader STATIC src/tmx-loader.c)
 target_include_directories(tmx-loader PUBLIC include)
 

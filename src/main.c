@@ -5,6 +5,10 @@
 #include <stdio.h>
 #include <flecs.h>
 #include "tmx-loader.h"
+#include "ecs/systems/movement.h"
+#include "ecs/components/basic.h"
+#include "ecs/components/player.h"
+#include "ecs/components/tile-collider.h"
 
 typedef struct
 {
@@ -14,33 +18,10 @@ typedef struct
 
 GameContext global_ctx;
 
-typedef struct
-{
-    float x, y;
-} Position, Velocity;
-
-typedef struct
-{
-    int tile_x, tile_y;
-    Vector2 *points[8];
-} TileCollider;
-
-typedef struct
-{
-    Texture2D texture;
-} PlayerTag;
-
-void Move(ecs_iter_t *it)
-{
-    Position *p = ecs_field(it, Position, 0);
-    Velocity *v = ecs_field(it, Velocity, 1);
-
-    for (int i = 0; i < it->count; i++)
-    {
-        p[i].x += v[i].x;
-        p[i].y += v[i].y;
-    }
-}
+ECS_COMPONENT_DECLARE(Position);
+ECS_COMPONENT_DECLARE(Velocity);
+ECS_COMPONENT_DECLARE(PlayerTag);
+ECS_COMPONENT_DECLARE(TileCollider);
 
 void DrawTMXLayerObject(tmx_map *map, tmx_object *obj, int posX, int posY, Color tint)
 {
@@ -48,12 +29,9 @@ void DrawTMXLayerObject(tmx_map *map, tmx_object *obj, int posX, int posY, Color
     {
         if (strcmp(obj->type, "start") == 0)
         {
-            ecs_world_t *world = global_ctx.world;
-            ECS_COMPONENT(world, Position);
-            ECS_COMPONENT(world, PlayerTag);
             ecs_entity_t player = global_ctx.player;
-            const PlayerTag *playerTag = ecs_get(world, player, PlayerTag);
-            ecs_set(world, player, Position, {obj->x - (playerTag->texture.width / 36), obj->y - (playerTag->texture.height / 6)});
+            const PlayerTag *playerTag = ecs_get(global_ctx.world, player, PlayerTag);
+            ecs_set(global_ctx.world, player, Position, {obj->x - (playerTag->texture.width / 36), obj->y - (playerTag->texture.height / 6)});
         }
     }
 }
@@ -64,8 +42,6 @@ void DrawTmxTileCollision(tmx_object *collision, int posX, int posY)
     int pointCount = 0;
 
     ecs_entity_t collider = ecs_new(global_ctx.world);
-    ECS_COMPONENT(global_ctx.world, Position);
-    ECS_COMPONENT(global_ctx.world, TileCollider);
     ecs_add(global_ctx.world, collider, Position);
     ecs_set(global_ctx.world, collider, Position, {posX, posY});
     ecs_add(global_ctx.world, collider, TileCollider);
@@ -94,18 +70,23 @@ int main(void)
     DrawTmxTileCollisionFunc = DrawTmxTileCollision;
 
     ecs_world_t *world = ecs_init();
+
+    ECS_COMPONENT_DEFINE(world, Position);
+    ECS_COMPONENT_DEFINE(world, Velocity);
+    ECS_COMPONENT_DEFINE(world, PlayerTag);
+    ECS_COMPONENT_DEFINE(world, TileCollider);
+
+    ecs_singleton_set(world, EcsRest, {0});
+    ECS_IMPORT(world, Movement);
     global_ctx.world = world;
-    ECS_COMPONENT(world, PlayerTag);
-    ECS_COMPONENT(world, Position);
-    ECS_COMPONENT(world, Velocity);
-    ECS_COMPONENT(world, TileCollider);
-    ECS_SYSTEM(world, Move, EcsOnUpdate, Position, Velocity);
 
     ecs_entity_t player = ecs_new(world);
     global_ctx.player = player;
 
-    ecs_set(world, player, Velocity, {0.0f, 0.0f});
+    ecs_add(world, player, Position);
+    ecs_add(world, player, Velocity);
     ecs_add(world, player, PlayerTag);
+    ecs_set(world, player, Velocity, {0.0f, 0.0f});
 
     Texture2D playerTexture = LoadTexture(get_asset_path("scarfy.png"));
     ecs_set(world, player, PlayerTag, {playerTexture});
@@ -138,12 +119,13 @@ int main(void)
     DrawTMX(map, 0, 0, RAYWHITE);
     EndTextureMode();
 
-    while (!WindowShouldClose() && ecs_progress(world, GetFrameTime()))
+    while (!WindowShouldClose() && !ecs_should_quit(world))
     {
+        ecs_progress(world, GetFrameTime());
+
         Vector2 move = get_movement_input(moveSpeed);
         ecs_set(world, player, Velocity, {move.x, move.y});
         bool isMoving = (move.x != 0.0f || move.y != 0.0f);
-
         if (move.x > 0)
             facingRight = true;
         else if (move.x < 0)
@@ -172,9 +154,7 @@ int main(void)
                 frameRec.x = (float)currentFrame * frameRec.width;
             }
 
-            ecs_query_desc_t qd = {0};
-            qd.terms[0].id = ecs_id(TileCollider);
-            ecs_query_t *query = ecs_query_init(world, &qd);
+            ecs_query_t *query = ecs_query(world, {.terms = {{.id = ecs_id(TileCollider)}}});
             ecs_iter_t it = ecs_query_iter(world, query);
             while (ecs_query_next(&it))
             {

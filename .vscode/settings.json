@@ -8,6 +8,9 @@
     "*.js": "javascript",
     "flecs.h": "c",
     "tmx-loader.h": "c",
-    "utility": "c"
+    "utility": "c",
+    "utils.h": "c",
+    "basic.h": "c",
+    "movement.h": "c"
   }
 }
