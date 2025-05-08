@@ -1,10 +1,60 @@
-/**
- * raylib-tmx - TMX Loader for raylib.
- *
- * This file is here to allow compiled individually. This allows linking
- * raylib-tmx without needing to compile it as part of your source files,
- * or defining RAYLIB_TMX_IMPLEMENTATION.
- */
-
-#define RAYLIB_TMX_IMPLEMENTATION
 #include "tmx-loader.h"
+#include "context.h"
+#include "constants.h"
+#include "ecs/components/basic.h"
+#include "ecs/components/player.h"
+#include "ecs/entities/collision.h"
+#include "ecs/components/tile-collider.h"
+
+extern ECS_COMPONENT_DECLARE(Position);
+extern ECS_COMPONENT_DECLARE(Velocity);
+extern ECS_COMPONENT_DECLARE(PlayerTag);
+extern ECS_COMPONENT_DECLARE(TileCollider);
+
+void DrawTMXLayerObjectFunc(tmx_map *map, tmx_object *obj, int posX, int posY, Color tint)
+{
+  if (obj->type)
+  {
+    if (strcmp(obj->type, "start") == 0)
+    {
+      ecs_entity_t player = global_ctx.player;
+      const PlayerTag *playerTag = ecs_get(global_ctx.world, player, PlayerTag);
+      ecs_set(global_ctx.world, player, Position, {obj->x - (playerTag->texture.width / 36), obj->y - (playerTag->texture.height / 6)});
+    }
+  }
+}
+
+void DrawTmxTileCollisionFunc(tmx_object *collision, int posX, int posY)
+{
+  Vector2 points[8];
+  int pointCount = 0;
+  while (collision)
+  {
+    points[pointCount].x = collision->x;
+    points[pointCount].y = collision->y;
+    pointCount++;
+    collision = collision->next;
+  }
+  ecs_entity_t group = ecs_lookup(global_ctx.world, TILE_COLLIDER_GROUP);
+  CreateCollisionEntity(global_ctx.world, (Vector2){posX, posY}, points, group);
+}
+
+RenderTexture2D InitMap(const char *mapPath)
+{
+  tmx_map *map = LoadTMX(mapPath);
+  if (map == NULL)
+  {
+    fprintf(stderr, "Failed to load map: %s\n", mapPath);
+    return (RenderTexture2D){0};
+  }
+
+  int tex_width = map->width * map->tile_width;
+  int tex_height = map->height * map->tile_height;
+
+  RenderTexture2D mapTexture = LoadRenderTexture(tex_width, tex_height);
+
+  BeginTextureMode(mapTexture);
+  DrawTMX(map, 0, 0, RAYWHITE);
+  EndTextureMode();
+  return mapTexture;
+}

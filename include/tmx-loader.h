@@ -135,6 +135,8 @@ tmx_map *LoadTMX(const char *fileName)
     return map;
 }
 
+RenderTexture2D InitMap(const char *);
+
 /**
  * Unload the given TMX map.
  *
@@ -222,7 +224,7 @@ void DrawTMXText(tmx_text *text, Rectangle dest, Color tint)
     }
 }
 
-extern void (*DrawTMXLayerObjectFunc)(tmx_map *, tmx_object *, int, int, Color) = NULL;
+void DrawTMXLayerObjectFunc(tmx_map *, tmx_object *, int, int, Color);
 
 /**
  * @internal
@@ -305,7 +307,7 @@ void DrawTMXLayerImage(tmx_image *image, int posX, int posY, Color tint)
     }
 }
 
-extern void (*DrawTmxTileCollisionFunc)(tmx_object *, int, int) = NULL;
+void DrawTmxTileCollisionFunc(tmx_object *, int, int);
 
 /**
  * Render a single TMX tile on the screen.

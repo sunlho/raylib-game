@@ -7,7 +7,7 @@
 extern ECS_COMPONENT_DECLARE(Position);
 extern ECS_COMPONENT_DECLARE(Velocity);
 
-void MoveSystem(ecs_iter_t *it)
+static inline void MoveSystem(ecs_iter_t *it)
 {
   Position *p = ecs_field(it, Position, 0);
   Velocity *v = ecs_field(it, Velocity, 1);
@@ -19,7 +19,7 @@ void MoveSystem(ecs_iter_t *it)
   }
 }
 
-void MovementImport(ecs_world_t *world)
+static inline void MovementImport(ecs_world_t *world)
 {
   ECS_MODULE(world, Movement);
   ECS_SYSTEM(world, MoveSystem, EcsOnUpdate, Position, Velocity);

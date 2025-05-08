@@ -3,56 +3,21 @@
 #include <stdio.h>
 #include <flecs.h>
 #include "utils.h"
+#include "context.h"
+#include "constants.h"
 #define RAYLIB_TMX_IMPLEMENTATION
 #include "tmx-loader.h"
 #include "ecs/systems/movement.h"
 #include "ecs/components/basic.h"
 #include "ecs/components/player.h"
 #include "ecs/components/tile-collider.h"
-#include "ecs/entities/collision.h"
 
-#define TILE_COLLIDER_GROUP "TileColliderGroup"
-
-typedef struct
-{
-    ecs_world_t *world;
-    ecs_entity_t player;
-} GameContext;
-
-GameContext global_ctx;
+GameContext global_ctx = {0};
 
 ECS_COMPONENT_DECLARE(Position);
 ECS_COMPONENT_DECLARE(Velocity);
 ECS_COMPONENT_DECLARE(PlayerTag);
 ECS_COMPONENT_DECLARE(TileCollider);
-
-void DrawTMXLayerObject(tmx_map *map, tmx_object *obj, int posX, int posY, Color tint)
-{
-    if (obj->type)
-    {
-        if (strcmp(obj->type, "start") == 0)
-        {
-            ecs_entity_t player = global_ctx.player;
-            const PlayerTag *playerTag = ecs_get(global_ctx.world, player, PlayerTag);
-            ecs_set(global_ctx.world, player, Position, {obj->x - (playerTag->texture.width / 36), obj->y - (playerTag->texture.height / 6)});
-        }
-    }
-}
-
-void DrawTmxTileCollision(tmx_object *collision, int posX, int posY)
-{
-    Vector2 points[8];
-    int pointCount = 0;
-    while (collision)
-    {
-        points[pointCount].x = collision->x;
-        points[pointCount].y = collision->y;
-        pointCount++;
-        collision = collision->next;
-    }
-    ecs_entity_t group = ecs_lookup(global_ctx.world, TILE_COLLIDER_GROUP);
-    CreateCollisionEntity(global_ctx.world, (Vector2){posX, posY}, points, group);
-}
 
 int main(void)
 {
@@ -61,9 +26,6 @@ int main(void)
 
     InitWindow(screenWidth, screenHeight, "[raylib-tmx] example");
     SetTargetFPS(60);
-
-    DrawTMXLayerObjectFunc = DrawTMXLayerObject;
-    DrawTmxTileCollisionFunc = DrawTmxTileCollision;
 
     ecs_world_t *world = ecs_init();
 
@@ -86,7 +48,7 @@ int main(void)
 
     ecs_entity_t group = ecs_entity(world, {.name = TILE_COLLIDER_GROUP});
 
-    Texture2D playerTexture = LoadTexture(get_asset_path("scarfy.png"));
+    Texture2D playerTexture = LoadTexture(GetAssetPath("scarfy.png"));
     ecs_set(world, player, PlayerTag, {playerTexture});
 
     playerTexture.width /= 3;
@@ -100,28 +62,13 @@ int main(void)
     float moveSpeed = 3.5f;
     bool facingRight = true;
 
-    tmx_map *map = LoadTMX(get_asset_path("island.tmx"));
-
-    if (!map)
-    {
-        TraceLog(LOG_ERROR, "Failed to load map: %s", get_asset_path("island.tmx"));
-        return 1;
-    }
-
-    int tex_width = map->width * map->tile_width;
-    int tex_height = map->height * map->tile_height;
-
-    RenderTexture2D mapTexture = LoadRenderTexture(tex_width, tex_height);
-
-    BeginTextureMode(mapTexture);
-    DrawTMX(map, 0, 0, RAYWHITE);
-    EndTextureMode();
+    RenderTexture2D mapTexture = InitMap(GetAssetPath("island.tmx"));
 
     while (!WindowShouldClose() && !ecs_should_quit(world))
     {
         ecs_progress(world, GetFrameTime());
 
-        Vector2 move = get_movement_input(moveSpeed);
+        Vector2 move = GetMovementInput(moveSpeed);
         ecs_set(world, player, Velocity, {move.x, move.y});
         bool isMoving = (move.x != 0.0f || move.y != 0.0f);
         if (move.x > 0)

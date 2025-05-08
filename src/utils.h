@@ -4,14 +4,14 @@
 #include "raylib.h"
 #include <math.h>
 
-static const char *get_asset_path(const char *relative_path)
+static inline const char *GetAssetPath(const char *relative_path)
 {
     static char full_path[512];
     snprintf(full_path, sizeof(full_path), "%s%s", ASSETS_PATH, relative_path);
     return full_path;
 }
 
-static Vector2 get_movement_input(float speed)
+static inline Vector2 GetMovementInput(float speed)
 {
     static int lastHorizontalKey = 0;
     static int lastVerticalKey = 0;
