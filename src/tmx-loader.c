@@ -25,9 +25,10 @@ void DrawTMXLayerObjectFunc(tmx_map *map, tmx_object *obj, int posX, int posY, C
     }
 }
 
-void DrawTmxTileCollisionFunc(tmx_object *collision, int posX, int posY) {
+void DrawTmxTileCollisionFunc(tmx_tile *tile, int posX, int posY) {
+    tmx_object *collision = tile->collision;
     while (collision) {
-        CreateCollisionEntity(GetWorld(), posX, posY, collision->content.shape);
+        CreateCollisionEntity(GetWorld(), posX + collision->x, posY + collision->y, tile->id, collision->content.shape);
         collision = collision->next;
     }
 }

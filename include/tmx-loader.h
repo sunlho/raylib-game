@@ -45,7 +45,7 @@ void DrawTMXLayers(tmx_map *map, tmx_layer *layers, int posX, int posY, Color ti
 void DrawTMXLayer(tmx_map *map, tmx_layer *layer, int posX, int posY, Color tint);
 void DrawTMXTile(tmx_tile *tile, int posX, int posY, Color tint);
 void DrawTMXLayerObjectFunc(tmx_map *map, tmx_object *obj, int posX, int posY, Color tint);
-void DrawTmxTileCollisionFunc(tmx_object *collision, int posX, int posY);
+void DrawTmxTileCollisionFunc(tmx_tile *tile, int posX, int posY);
 RenderTexture2D InitMap(const char *mapPath);
 
 #endif // INCLUDE_TMX_LOADER_H
@@ -153,7 +153,9 @@ void UnloadTMX(tmx_map *map) {
 void DrawTMXPolyline(double offset_x, double offset_y, double **points, int points_count, Color color) {
     for (int i = 1; i < points_count; i++) {
         DrawLineEx((Vector2){(float)(offset_x + points[i - 1][0]), (float)(offset_y + points[i - 1][1])},
-                   (Vector2){(float)(offset_x + points[i][0]), (float)(offset_y + points[i][1])}, RAYLIB_TMX_LINE_THICKNESS, color);
+                   (Vector2){(float)(offset_x + points[i][0]), (float)(offset_y + points[i][1])},
+                   RAYLIB_TMX_LINE_THICKNESS,
+                   color);
     }
 }
 
@@ -164,7 +166,8 @@ void DrawTMXPolygon(double offset_x, double offset_y, double **points, int point
     DrawTMXPolyline(offset_x, offset_y, points, points_count, color);
     if (points_count > 2) {
         DrawLineEx((Vector2){(float)(offset_x + points[0][0]), (float)(offset_y + points[0][1])},
-                   (Vector2){(float)(offset_x + points[points_count - 1][0]), (float)(offset_y + points[points_count - 1][1])}, RAYLIB_TMX_LINE_THICKNESS,
+                   (Vector2){(float)(offset_x + points[points_count - 1][0]), (float)(offset_y + points[points_count - 1][1])},
+                   RAYLIB_TMX_LINE_THICKNESS,
                    color);
     }
 }
@@ -198,8 +201,6 @@ void DrawTMXText(tmx_text *text, Rectangle dest, Color tint) {
         DrawTextPro(font, message, position, origin, 0.0f, fontSize, spacing, tint);
     }
 }
-
-void DrawTMXLayerObjectFunc(tmx_map *, tmx_object *, int, int, Color);
 
 /**
  * @internal
@@ -266,8 +267,6 @@ void DrawTMXLayerImage(tmx_image *image, int posX, int posY, Color tint) {
     }
 }
 
-void DrawTmxTileCollisionFunc(tmx_object *, int, int);
-
 /**
  * Render a single TMX tile on the screen.
  *
@@ -298,8 +297,8 @@ void DrawTMXTile(tmx_tile *tile, int posX, int posY, Color tint) {
 
     // Find the image
     tmx_image *im = tile->image ? tile->image : tile->tileset->image;
-    if (tile->collision) {
-        DrawTmxTileCollisionFunc(tile->collision, posX, posY);
+    if (tile) {
+        DrawTmxTileCollisionFunc(tile, posX, posY);
     }
 
     if (im && im->resource_image) {

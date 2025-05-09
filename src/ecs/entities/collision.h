@@ -8,7 +8,7 @@
 #include <flecs.h>
 #include <raylib.h>
 
-ecs_entity_t CreateCollisionEntity(ecs_world_t *world, int posX, int posY, tmx_shape *shape);
+ecs_entity_t CreateCollisionEntity(ecs_world_t *world, int posX, int posY, int tileId, tmx_shape *shape);
 ecs_entity_t GetCollisionEntityGroup();
 void DrawCollisionRectangle();
 
@@ -30,12 +30,12 @@ ecs_entity_t GetCollisionEntityGroup() {
     return group;
 }
 
-ecs_entity_t CreateCollisionEntity(ecs_world_t *world, int posX, int posY, tmx_shape *shape) {
+ecs_entity_t CreateCollisionEntity(ecs_world_t *world, int posX, int posY, int tileId, tmx_shape *shape) {
     ecs_entity_t collider = ecs_new(world);
     ecs_add(world, collider, Position);
     ecs_set(world, collider, Position, {posX, posY});
     ecs_add(world, collider, TileCollider);
-    ecs_set(world, collider, TileCollider, {.tile_x = posX, .tile_y = posY, .point_count = shape->points_len, .points = shape->points});
+    ecs_set(world, collider, TileCollider, {.tileId = tileId, .pointCount = shape->points_len, .points = shape->points});
     ecs_entity_t group = GetCollisionEntityGroup();
     if (group) {
         ecs_add_pair(world, collider, EcsChildOf, group);
@@ -52,8 +52,8 @@ void DrawCollisionRectangle() {
             const TileCollider *tc = ecs_get(GetWorld(), child, TileCollider);
             if (!p || !tc)
                 continue;
-            for (int j = 0; j < tc->point_count; j++) {
-                int next = (j + 1) % tc->point_count;
+            for (int j = 0; j < tc->pointCount; j++) {
+                int next = (j + 1) % tc->pointCount;
                 DrawLineEx(
                     (Vector2){p->x + tc->points[j][0], p->y + tc->points[j][1]},
                     (Vector2){p->x + tc->points[next][0], p->y + tc->points[next][1]},

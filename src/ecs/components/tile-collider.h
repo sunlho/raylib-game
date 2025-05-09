@@ -5,8 +5,8 @@
 #include <raylib.h>
 
 typedef struct {
-    int tile_x, tile_y;
-    int point_count;
+    int tileId;
+    int pointCount;
     double **points;
 } TileCollider;
 
