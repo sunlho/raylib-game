@@ -4,8 +4,7 @@
 #include <flecs.h>
 #include <raylib.h>
 
-typedef struct
-{
+typedef struct {
     int tile_x, tile_y;
     Vector2 *points[8];
 } TileCollider;

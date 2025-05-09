@@ -1,12 +1,15 @@
-#include "tmx-loader.h"
+
 #include "constants.h"
 #include "context.h"
 #include "ecs/components/basic.h"
 #include "ecs/components/player.h"
 #include "ecs/components/tile-collider.h"
-#include "ecs/entities/collision.h"
 #include "ecs/entities/player.h"
 #include "utils.h"
+#define TMX_LOADER_IMPLEMENTATION
+#include "tmx-loader.h"
+#define ECS_COLLISION_ENTITY_IMPLEMENTATION
+#include "ecs/entities/collision.h"
 
 extern ECS_COMPONENT_DECLARE(Position);
 extern ECS_COMPONENT_DECLARE(Velocity);
@@ -16,8 +19,8 @@ extern ECS_COMPONENT_DECLARE(TileCollider);
 void DrawTMXLayerObjectFunc(tmx_map *map, tmx_object *obj, int posX, int posY, Color tint) {
     if (obj->type) {
         if (strcmp(obj->type, "start") == 0) {
-            const PlayerTag *playerTag = ecs_get(global_ctx.world, GetPlayer(), PlayerTag);
-            InitPlayerPosition(global_ctx.world, (Vector2){obj->x - (playerTag->texture.width / 36), obj->y - (playerTag->texture.height / 6)});
+            const PlayerTag *playerTag = ecs_get(GetWorld(), GetPlayerEntity(), PlayerTag);
+            InitPlayerPosition(GetWorld(), (Vector2){obj->x - (playerTag->texture.width / 36), obj->y - (playerTag->texture.height / 6)});
         }
     }
 }
@@ -31,8 +34,7 @@ void DrawTmxTileCollisionFunc(tmx_object *collision, int posX, int posY) {
         pointCount++;
         collision = collision->next;
     }
-    ecs_entity_t group = ecs_lookup(global_ctx.world, TILE_COLLIDER_GROUP);
-    CreateCollisionEntity(global_ctx.world, (Vector2){posX, posY}, points, group);
+    CreateCollisionEntity(GetWorld(), (Vector2){posX, posY}, points);
 }
 
 RenderTexture2D InitMap(const char *mapPath) {

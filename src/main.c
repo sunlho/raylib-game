@@ -1,19 +1,18 @@
 #include "constants.h"
-#include "context.h"
 #include "ecs/components/basic.h"
 #include "ecs/components/player.h"
 #include "ecs/components/tile-collider.h"
-#include "ecs/entities/player.h"
 #include "ecs/systems/movement.h"
+#include "tmx-loader.h"
 #include "utils.h"
 #include <flecs.h>
 #include <raylib.h>
 #include <stdio.h>
 #include <tmx.h>
-#define RAYLIB_TMX_IMPLEMENTATION
-#include "tmx-loader.h"
-
-GameContext global_ctx = {0};
+#define CONTEXT_IMPLEMENTATION
+#include "context.h"
+#define ECS_PLAYER_ENTITY_IMPLEMENTATION
+#include "ecs/entities/player.h"
 
 ECS_COMPONENT_DECLARE(Position);
 ECS_COMPONENT_DECLARE(Velocity);
@@ -33,10 +32,11 @@ int main(void) {
 
     ecs_singleton_set(world, EcsRest, {0});
     ECS_IMPORT(world, Movement);
-    global_ctx.world = world;
+    SetWorld(world);
 
-    ecs_entity_t group = ecs_entity(world, {.name = TILE_COLLIDER_GROUP});
-    CreatePlayerEntity(world);
+    ecs_entity_t player = CreatePlayerEntity(world);
+    SetPlayerEntity(player);
+
     RenderTexture2D mapTexture = InitMap(GetAssetPath("island.tmx"));
 
     while (!WindowShouldClose() && !ecs_should_quit(world)) {
