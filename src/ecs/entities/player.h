@@ -22,7 +22,7 @@ void FreePlayerEntity(ecs_world_t *world);
 
 extern ECS_COMPONENT_DECLARE(Position);
 extern ECS_COMPONENT_DECLARE(Velocity);
-extern ECS_COMPONENT_DECLARE(PlayerTag);
+extern ECS_COMPONENT_DECLARE(PlayerData);
 
 static int framesCounter = 0;
 static int framesSpeed = 9;
@@ -37,21 +37,21 @@ PlayerDirection GetDirection(Vector2 move) {
     return (y < 0) ? UP : (y > 0) ? DOWN : NONE;
 }
 
-void UpdatePlayerFrameRec(PlayerTag *playerTag, int currentFrame, float frameWidth) {
-    if (playerTag->direction == LEFT || playerTag->direction == LEFT_UP || playerTag->direction == LEFT_DOWN) {
-        playerTag->frameRec.width = -frameWidth;
-    } else if (playerTag->direction == RIGHT || playerTag->direction == RIGHT_UP || playerTag->direction == RIGHT_DOWN) {
-        playerTag->frameRec.width = frameWidth;
+void UpdatePlayerFrameRec(PlayerData *playerData, int currentFrame) {
+    if (playerData->direction == LEFT || playerData->direction == LEFT_UP || playerData->direction == LEFT_DOWN) {
+        playerData->frameRec.width = -playerData->width;
+    } else if (playerData->direction == RIGHT || playerData->direction == RIGHT_UP || playerData->direction == RIGHT_DOWN) {
+        playerData->frameRec.width = playerData->width;
     }
-    playerTag->frameRec.x += frameWidth;
+    playerData->frameRec.x = playerData->width * currentFrame;
 }
 
 void DrawPlayer(ecs_world_t *world) {
-    PlayerTag *playerTag = ecs_get_mut(world, GetPlayerEntity(), PlayerTag);
+    PlayerData *playerData = ecs_get_mut(world, GetPlayerEntity(), PlayerData);
     const Position *p = ecs_get(world, GetPlayerEntity(), Position);
     Vector2 move = GetMovementInput(PLAYER_MOVE_SPEED);
     ecs_set(world, GetPlayerEntity(), Velocity, {move.x, move.y});
-    playerTag->direction = GetDirection(move);
+    playerData->direction = GetDirection(move);
 
     bool isMoving = (move.x != 0.0f || move.y != 0.0f);
     if (isMoving) {
@@ -61,26 +61,26 @@ void DrawPlayer(ecs_world_t *world) {
             x = 0;
         if (y < 0)
             y = 0;
-        if (x + playerTag->frameRec.width > SCREEN_WIDTH)
-            x = SCREEN_WIDTH - playerTag->frameRec.width;
-        if (y + playerTag->frameRec.height > SCREEN_HEIGHT)
-            y = SCREEN_HEIGHT - playerTag->frameRec.height;
+        if (x + playerData->frameRec.width > SCREEN_WIDTH)
+            x = SCREEN_WIDTH - playerData->frameRec.width;
+        if (y + playerData->frameRec.height > SCREEN_HEIGHT)
+            y = SCREEN_HEIGHT - playerData->frameRec.height;
         ecs_set(world, GetPlayerEntity(), Position, {x, y});
 
         framesCounter++;
         if (framesCounter >= (60 / framesSpeed)) {
             framesCounter = 0;
             currentFrame = (currentFrame + 1) % 6;
-            UpdatePlayerFrameRec(playerTag, currentFrame, playerTag->texture.width / 6.0f);
+            UpdatePlayerFrameRec(playerData, currentFrame);
         }
-
     } else {
         framesCounter = 0;
         currentFrame = 0;
+        playerData->frameRec.x = 0.0f;
     }
-    ecs_modified(world, GetPlayerEntity(), PlayerTag);
+    ecs_modified(world, GetPlayerEntity(), PlayerData);
 
-    DrawTextureRec(playerTag->texture, playerTag->frameRec, (Vector2){p->x, p->y}, WHITE);
+    DrawTextureRec(playerData->texture, playerData->frameRec, (Vector2){p->x, p->y}, WHITE);
 }
 
 ecs_entity_t CreatePlayerEntity(ecs_world_t *world) {
@@ -89,14 +89,15 @@ ecs_entity_t CreatePlayerEntity(ecs_world_t *world) {
 
         ecs_add(world, player, Position);
         ecs_add(world, player, Velocity);
-        ecs_add(world, player, PlayerTag);
+        ecs_add(world, player, PlayerData);
         ecs_set(world, player, Velocity, {0.0f, 0.0f});
 
         Texture2D playerTexture = LoadTexture(GetAssetPath("scarfy.png"));
         playerTexture.width /= 3;
         playerTexture.height /= 3;
         Rectangle frameRec = {0.0f, 0.0f, playerTexture.width / 6.0f, (float)playerTexture.height};
-        ecs_set(world, player, PlayerTag, {.texture = playerTexture, .frameRec = frameRec});
+        ecs_set(world, player, PlayerData,
+                {.texture = playerTexture, .frameRec = frameRec, .width = frameRec.width, .height = frameRec.height, .direction = NONE});
         return player;
     } else {
         return GetPlayerEntity();
@@ -106,9 +107,9 @@ ecs_entity_t CreatePlayerEntity(ecs_world_t *world) {
 void InitPlayerPosition(ecs_world_t *world, Vector2 position) { ecs_set(world, GetPlayerEntity(), Position, {position.x, position.y}); }
 
 void FreePlayerEntity(ecs_world_t *world) {
-    const PlayerTag *playerTag = ecs_get(world, GetPlayerEntity(), PlayerTag);
-    if (playerTag != NULL) {
-        UnloadTexture(playerTag->texture);
+    const PlayerData *playerData = ecs_get(world, GetPlayerEntity(), PlayerData);
+    if (playerData != NULL) {
+        UnloadTexture(playerData->texture);
     }
     ecs_delete(world, GetPlayerEntity());
 }

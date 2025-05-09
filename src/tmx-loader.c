@@ -13,28 +13,23 @@
 
 extern ECS_COMPONENT_DECLARE(Position);
 extern ECS_COMPONENT_DECLARE(Velocity);
-extern ECS_COMPONENT_DECLARE(PlayerTag);
+extern ECS_COMPONENT_DECLARE(PlayerData);
 extern ECS_COMPONENT_DECLARE(TileCollider);
 
 void DrawTMXLayerObjectFunc(tmx_map *map, tmx_object *obj, int posX, int posY, Color tint) {
     if (obj->type) {
-        if (strcmp(obj->type, "start") == 0) {
-            const PlayerTag *playerTag = ecs_get(GetWorld(), GetPlayerEntity(), PlayerTag);
+        if (!strcmp(obj->type, "start")) {
+            const PlayerData *playerTag = ecs_get(GetWorld(), GetPlayerEntity(), PlayerData);
             InitPlayerPosition(GetWorld(), (Vector2){obj->x - (playerTag->texture.width / 36), obj->y - (playerTag->texture.height / 6)});
         }
     }
 }
 
 void DrawTmxTileCollisionFunc(tmx_object *collision, int posX, int posY) {
-    Vector2 points[8];
-    int pointCount = 0;
     while (collision) {
-        points[pointCount].x = collision->x;
-        points[pointCount].y = collision->y;
-        pointCount++;
+        CreateCollisionEntity(GetWorld(), posX, posY, collision->content.shape);
         collision = collision->next;
     }
-    CreateCollisionEntity(GetWorld(), (Vector2){posX, posY}, points);
 }
 
 RenderTexture2D InitMap(const char *mapPath) {
@@ -51,6 +46,7 @@ RenderTexture2D InitMap(const char *mapPath) {
 
     BeginTextureMode(mapTexture);
     DrawTMX(map, 0, 0, RAYWHITE);
+    DrawCollisionRectangle();
     EndTextureMode();
     return mapTexture;
 }

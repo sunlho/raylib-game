@@ -16,7 +16,7 @@
 
 ECS_COMPONENT_DECLARE(Position);
 ECS_COMPONENT_DECLARE(Velocity);
-ECS_COMPONENT_DECLARE(PlayerTag);
+ECS_COMPONENT_DECLARE(PlayerData);
 ECS_COMPONENT_DECLARE(TileCollider);
 
 int main(void) {
@@ -27,7 +27,7 @@ int main(void) {
 
     ECS_COMPONENT_DEFINE(world, Position);
     ECS_COMPONENT_DEFINE(world, Velocity);
-    ECS_COMPONENT_DEFINE(world, PlayerTag);
+    ECS_COMPONENT_DEFINE(world, PlayerData);
     ECS_COMPONENT_DEFINE(world, TileCollider);
 
     ecs_singleton_set(world, EcsRest, {0});

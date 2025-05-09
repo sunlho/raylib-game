@@ -8,8 +8,9 @@
 #include <flecs.h>
 #include <raylib.h>
 
-ecs_entity_t CreateCollisionEntity(ecs_world_t *world, Vector2 position, Vector2 points[8]);
+ecs_entity_t CreateCollisionEntity(ecs_world_t *world, int posX, int posY, tmx_shape *shape);
 ecs_entity_t GetCollisionEntityGroup();
+void DrawCollisionRectangle();
 
 #endif // ECS_COLLISION_ENTITY_H
 
@@ -29,17 +30,38 @@ ecs_entity_t GetCollisionEntityGroup() {
     return group;
 }
 
-ecs_entity_t CreateCollisionEntity(ecs_world_t *world, Vector2 position, Vector2 points[8]) {
+ecs_entity_t CreateCollisionEntity(ecs_world_t *world, int posX, int posY, tmx_shape *shape) {
     ecs_entity_t collider = ecs_new(world);
     ecs_add(world, collider, Position);
-    ecs_set(world, collider, Position, {position.x, position.y});
+    ecs_set(world, collider, Position, {posX, posY});
     ecs_add(world, collider, TileCollider);
-    ecs_set(world, collider, TileCollider, {position.x, position.y, points});
+    ecs_set(world, collider, TileCollider, {.tile_x = posX, .tile_y = posY, .point_count = shape->points_len, .points = shape->points});
     ecs_entity_t group = GetCollisionEntityGroup();
     if (group) {
         ecs_add_pair(world, collider, EcsChildOf, group);
     }
     return collider;
+}
+
+void DrawCollisionRectangle() {
+    ecs_iter_t it = ecs_children(GetWorld(), GetCollisionEntityGroup());
+    while (ecs_children_next(&it)) {
+        for (int i = 0; i < it.count; i++) {
+            ecs_entity_t child = it.entities[i];
+            const Position *p = ecs_get(GetWorld(), child, Position);
+            const TileCollider *tc = ecs_get(GetWorld(), child, TileCollider);
+            if (!p || !tc)
+                continue;
+            for (int j = 0; j < tc->point_count; j++) {
+                int next = (j + 1) % tc->point_count;
+                DrawLineEx(
+                    (Vector2){p->x + tc->points[j][0], p->y + tc->points[j][1]},
+                    (Vector2){p->x + tc->points[next][0], p->y + tc->points[next][1]},
+                    2.0f,
+                    RED);
+            }
+        }
+    }
 }
 
 #endif // ECS_COLLISION_ENTITY_IMPLEMENTATION_ONLY

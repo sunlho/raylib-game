@@ -13,7 +13,7 @@ target_include_directories(${PROJECT_NAME} PRIVATE include src)
 
 target_link_libraries(${PROJECT_NAME} PRIVATE raylib tmx flecs::flecs_static)
 
-if(CMAKE_BUILD_TYPE STREQUAL "Debug")
+if(NOT CMAKE_BUILD_TYPE STREQUAL "Release")
     set(ASSETS_PATH "${CMAKE_SOURCE_DIR}/assets")
 else()
     set(ASSETS_PATH "${CMAKE_CURRENT_BINARY_DIR}/assets")

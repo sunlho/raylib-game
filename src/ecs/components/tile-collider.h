@@ -6,7 +6,8 @@
 
 typedef struct {
     int tile_x, tile_y;
-    Vector2 *points[8];
+    int point_count;
+    double **points;
 } TileCollider;
 
 #endif // ECS_TILE_COLLIDER_COMPONENT_H
