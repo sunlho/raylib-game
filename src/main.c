@@ -2,7 +2,6 @@
 #include "ecs/components/basic.h"
 #include "ecs/components/player.h"
 #include "ecs/components/tile-collider.h"
-#include "ecs/systems/movement.h"
 #include "tmx-loader.h"
 #include "utils.h"
 #include <flecs.h>
@@ -13,6 +12,8 @@
 #include "context.h"
 #define ECS_PLAYER_ENTITY_IMPLEMENTATION
 #include "ecs/entities/player.h"
+#define ECS_COLLISION_SYSTEM_IMPLEMENTATION
+#include "ecs/systems/movement.h"
 
 ECS_COMPONENT_DECLARE(Position);
 ECS_COMPONENT_DECLARE(Velocity);
@@ -31,13 +32,14 @@ int main(void) {
     ECS_COMPONENT_DEFINE(world, TileCollider);
 
     ecs_singleton_set(world, EcsRest, {0});
-    ECS_IMPORT(world, Movement);
     SetWorld(world);
 
     ecs_entity_t player = CreatePlayerEntity(world);
     SetPlayerEntity(player);
 
     RenderTexture2D mapTexture = InitMap(GetAssetPath("island.tmx"));
+
+    ECS_IMPORT(world, Movement);
 
     while (!WindowShouldClose() && !ecs_should_quit(world)) {
         ecs_progress(world, GetFrameTime());
