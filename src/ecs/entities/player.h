@@ -31,19 +31,22 @@ static int currentFrame = 0;
 PlayerDirection GetDirection(Vector2 move) {
     float x = move.x, y = move.y;
     if (x < 0)
-        return (y < 0) ? LEFT_UP : (y > 0) ? LEFT_DOWN : LEFT;
+        return (y < 0) ? LEFT_UP : (y > 0) ? LEFT_DOWN
+                                           : LEFT;
     if (x > 0)
-        return (y < 0) ? RIGHT_UP : (y > 0) ? RIGHT_DOWN : RIGHT;
-    return (y < 0) ? UP : (y > 0) ? DOWN : NONE;
+        return (y < 0) ? RIGHT_UP : (y > 0) ? RIGHT_DOWN
+                                            : RIGHT;
+    return (y < 0) ? UP : (y > 0) ? DOWN
+                                  : NONE;
 }
 
 void UpdatePlayerFrameRec(PlayerData *playerData, int currentFrame) {
     if (playerData->direction == LEFT || playerData->direction == LEFT_UP || playerData->direction == LEFT_DOWN) {
-        playerData->frameRec.width = -playerData->width;
+        playerData->frameRect.width = -playerData->width;
     } else if (playerData->direction == RIGHT || playerData->direction == RIGHT_UP || playerData->direction == RIGHT_DOWN) {
-        playerData->frameRec.width = playerData->width;
+        playerData->frameRect.width = playerData->width;
     }
-    playerData->frameRec.x = playerData->width * currentFrame;
+    playerData->frameRect.x = playerData->width * currentFrame;
 }
 
 void DrawPlayer(ecs_world_t *world) {
@@ -61,10 +64,10 @@ void DrawPlayer(ecs_world_t *world) {
             x = 0;
         if (y < 0)
             y = 0;
-        if (x + playerData->frameRec.width > SCREEN_WIDTH)
-            x = SCREEN_WIDTH - playerData->frameRec.width;
-        if (y + playerData->frameRec.height > SCREEN_HEIGHT)
-            y = SCREEN_HEIGHT - playerData->frameRec.height;
+        if (x + playerData->frameRect.width > SCREEN_WIDTH)
+            x = SCREEN_WIDTH - playerData->frameRect.width;
+        if (y + playerData->frameRect.height > SCREEN_HEIGHT)
+            y = SCREEN_HEIGHT - playerData->frameRect.height;
         ecs_set(world, GetPlayerEntity(), Position, {x, y});
 
         framesCounter++;
@@ -76,11 +79,20 @@ void DrawPlayer(ecs_world_t *world) {
     } else {
         framesCounter = 0;
         currentFrame = 0;
-        playerData->frameRec.x = 0.0f;
+        playerData->frameRect.x = 0.0f;
     }
     ecs_modified(world, GetPlayerEntity(), PlayerData);
 
-    DrawTextureRec(playerData->texture, playerData->frameRec, (Vector2){p->x, p->y}, WHITE);
+    Rectangle playerRect = {
+        p->x,
+        p->y,
+        playerData->width,
+        playerData->height,
+    };
+
+    DrawRectangleRec(playerRect, playerData->rectColor);
+
+    DrawTextureRec(playerData->texture, playerData->frameRect, (Vector2){p->x, p->y}, WHITE);
 }
 
 ecs_entity_t CreatePlayerEntity(ecs_world_t *world) {
@@ -95,9 +107,19 @@ ecs_entity_t CreatePlayerEntity(ecs_world_t *world) {
         Texture2D playerTexture = LoadTexture(GetAssetPath("scarfy.png"));
         playerTexture.width /= 3;
         playerTexture.height /= 3;
-        Rectangle frameRec = {0.0f, 0.0f, playerTexture.width / 6.0f, (float)playerTexture.height};
-        ecs_set(world, player, PlayerData,
-                {.texture = playerTexture, .frameRec = frameRec, .width = frameRec.width, .height = frameRec.height, .direction = NONE});
+        Rectangle frameRect = {0.0f, 0.0f, playerTexture.width / 6.0f, (float)playerTexture.height};
+        ecs_set(
+            world,
+            player,
+            PlayerData,
+            {
+                .texture = playerTexture,
+                .frameRect = frameRect,
+                .width = frameRect.width,
+                .height = frameRect.height,
+                .direction = NONE,
+                .rectColor = (Color){0, 0, 255, 50},
+            });
         return player;
     } else {
         return GetPlayerEntity();
