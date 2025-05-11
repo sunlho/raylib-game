@@ -2,6 +2,7 @@
 raylib/5.5
 tmx/1.10.0
 flecs/4.0.4
+chipmunk2d/7.0.3
 
 [generators]
 CMakeDeps

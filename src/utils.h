@@ -1,8 +1,8 @@
 #ifndef UTILS_H
 #define UTILS_H
 
+#include "raylib.h"
 #include <math.h>
-#include <raylib.h>
 
 static inline const char *GetAssetPath(const char *relative_path) {
     static char full_path[512];
@@ -66,8 +66,7 @@ static inline Vector2 GetMovementInput(float speed) {
 }
 
 static inline void DrawRenderTextureFixed(RenderTexture2D target, int posX, int posY, Color tint) {
-    DrawTexturePro(target.texture, (Rectangle){0, 0, (float)target.texture.width, -(float)target.texture.height},
-                   (Rectangle){(float)posX, (float)posY, (float)target.texture.width, (float)target.texture.height}, (Vector2){0, 0}, 0.0f, tint);
+    DrawTexturePro(target.texture, (Rectangle){0, 0, (float)target.texture.width, -(float)target.texture.height}, (Rectangle){(float)posX, (float)posY, (float)target.texture.width, (float)target.texture.height}, (Vector2){0, 0}, 0.0f, tint);
 }
 
 #endif // UTILS_H

@@ -33,8 +33,8 @@
 #ifndef INCLUDE_TMX_LOADER_H
 #define INCLUDE_TMX_LOADER_H
 
-#include <raylib.h>
-#include <tmx.h>
+#include "raylib.h"
+#include "tmx.h"
 
 // TMX functions
 tmx_map *LoadTMX(const char *fileName);
@@ -297,7 +297,7 @@ void DrawTMXTile(tmx_tile *tile, int posX, int posY, Color tint) {
 
     // Find the image
     tmx_image *im = tile->image ? tile->image : tile->tileset->image;
-    if (tile) {
+    if (tile->collision) {
         DrawTmxTileCollisionFunc(tile, posX, posY);
     }
 

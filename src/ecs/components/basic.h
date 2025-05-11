@@ -1,7 +1,7 @@
 #ifndef ECS_BASIC_COMPONENT_H
 #define ECS_BASIC_COMPONENT_H
 
-#include <flecs.h>
+#include "flecs.h"
 
 typedef struct
 {

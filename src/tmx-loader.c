@@ -20,7 +20,7 @@ void DrawTMXLayerObjectFunc(tmx_map *map, tmx_object *obj, int posX, int posY, C
     if (obj->type) {
         if (!strcmp(obj->type, "start")) {
             const PlayerData *playerTag = ecs_get(GetWorld(), GetPlayerEntity(), PlayerData);
-            InitPlayerPosition(GetWorld(), (Vector2){obj->x - (playerTag->texture.width / 36), obj->y - (playerTag->texture.height / 6)});
+            InitPlayerPosition(GetWorld(), (Vector2){obj->x, obj->y});
         }
     }
 }
@@ -28,7 +28,11 @@ void DrawTMXLayerObjectFunc(tmx_map *map, tmx_object *obj, int posX, int posY, C
 void DrawTmxTileCollisionFunc(tmx_tile *tile, int posX, int posY) {
     tmx_object *collision = tile->collision;
     while (collision) {
-        CreateCollisionEntity(GetWorld(), posX + collision->x, posY + collision->y, tile->id, collision->content.shape);
+        switch (collision->obj_type) {
+        case OT_POLYLINE:
+            PolylineCollisionEntity(GetWorld(), posX + collision->x, posY + collision->y, tile->id, collision->content.shape);
+            break;
+        }
         collision = collision->next;
     }
 }
@@ -47,7 +51,7 @@ RenderTexture2D InitMap(const char *mapPath) {
 
     BeginTextureMode(mapTexture);
     DrawTMX(map, 0, 0, RAYWHITE);
-    DrawCollisionRectangle();
+    // DrawCollisionRectangle();
     EndTextureMode();
     return mapTexture;
 }

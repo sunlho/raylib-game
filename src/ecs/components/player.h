@@ -1,8 +1,8 @@
 #ifndef ECS_PLAYER_COMPONENT_H
 #define ECS_PLAYER_COMPONENT_H
 
-#include <flecs.h>
-#include <raylib.h>
+#include "flecs.h"
+#include "raylib.h"
 
 typedef enum {
     LEFT_UP,
@@ -17,13 +17,21 @@ typedef enum {
 } PlayerDirection;
 
 typedef struct {
+    int x;
+    int y;
+} PlayerSpawn;
+
+typedef struct {
     Texture2D texture;
     float width;
     float height;
     Rectangle frameRect;
     PlayerDirection direction;
-    bool isColliding;
-    Color rectColor;
 } PlayerData;
+
+typedef struct {
+    cpShape *shape;
+    cpBody *body;
+} PlayerPhysics;
 
 #endif // ECS_PLAYER_COMPONENT_H

@@ -2,12 +2,16 @@
 #define WCS_PLAYER_ENTITY_H
 
 #include "../components/basic.h"
+#include "../components/physics.h"
 #include "../components/player.h"
+#include "../components/tile-collider.h"
+#include "chipmunk/chipmunk.h"
+#include "chipmunk/chipmunk_private.h"
 #include "constants.h"
 #include "context.h"
+#include "flecs.h"
+#include "raylib.h"
 #include "utils.h"
-#include <flecs.h>
-#include <raylib.h>
 
 void DrawPlayer(ecs_world_t *world);
 ecs_entity_t CreatePlayerEntity(ecs_world_t *world);
@@ -23,6 +27,9 @@ void FreePlayerEntity(ecs_world_t *world);
 extern ECS_COMPONENT_DECLARE(Position);
 extern ECS_COMPONENT_DECLARE(Velocity);
 extern ECS_COMPONENT_DECLARE(PlayerData);
+extern ECS_COMPONENT_DECLARE(PlayerSpawn);
+extern ECS_COMPONENT_DECLARE(PlayerPhysics);
+extern ECS_COMPONENT_DECLARE(PhysicsWorld);
 
 static int framesCounter = 0;
 static int framesSpeed = 9;
@@ -49,29 +56,35 @@ void UpdatePlayerFrameRec(PlayerData *playerData, int currentFrame) {
     playerData->frameRect.x = playerData->width * currentFrame;
 }
 
+void ResetPlayerPosition(ecs_world_t *world) {
+    const PlayerSpawn *playerSpawn = ecs_get(world, GetPlayerEntity(), PlayerSpawn);
+    const PlayerPhysics *pp = ecs_get(world, GetPlayerEntity(), PlayerPhysics);
+    if (playerSpawn != NULL) {
+        cpBodySetPosition(pp->body, cpv(playerSpawn->x, playerSpawn->y));
+    }
+}
+
+void DrawShapeCallback(cpBody *body, cpShape *shape, void *data) {
+    cpCircleShape *circle = (cpCircleShape *)shape;
+    cpVect pos = cpBodyLocalToWorld(body, circle->c);
+    float radius = circle->r;
+    DrawCircle((int)pos.x, (int)pos.y, radius, RED);
+}
+
 void DrawPlayer(ecs_world_t *world) {
     PlayerData *playerData = ecs_get_mut(world, GetPlayerEntity(), PlayerData);
     const Position *p = ecs_get(world, GetPlayerEntity(), Position);
     Vector2 move = GetMovementInput(PLAYER_MOVE_SPEED);
     ecs_set(world, GetPlayerEntity(), Velocity, {move.x, move.y});
     playerData->direction = GetDirection(move);
+    if (IsKeyPressed(KEY_R)) {
+        ResetPlayerPosition(world);
+    }
 
     bool isMoving = (move.x != 0.0f || move.y != 0.0f);
     if (isMoving) {
-        float x = p->x;
-        float y = p->y;
-        if (x < 0)
-            x = 0;
-        if (y < 0)
-            y = 0;
-        if (x + playerData->frameRect.width > SCREEN_WIDTH)
-            x = SCREEN_WIDTH - playerData->frameRect.width;
-        if (y + playerData->frameRect.height > SCREEN_HEIGHT)
-            y = SCREEN_HEIGHT - playerData->frameRect.height;
-        ecs_set(world, GetPlayerEntity(), Position, {x, y});
-
         framesCounter++;
-        if (framesCounter >= (60 / framesSpeed)) {
+        if (framesCounter >= (FPS / framesSpeed)) {
             framesCounter = 0;
             currentFrame = (currentFrame + 1) % 6;
             UpdatePlayerFrameRec(playerData, currentFrame);
@@ -82,31 +95,20 @@ void DrawPlayer(ecs_world_t *world) {
         playerData->frameRect.x = 0.0f;
     }
     ecs_modified(world, GetPlayerEntity(), PlayerData);
-
-    Rectangle playerRect = {
-        p->x,
-        p->y,
-        playerData->width,
-        playerData->height,
-    };
-
-    DrawRectangleRec(playerRect, playerData->rectColor);
-
-    DrawTextureRec(playerData->texture, playerData->frameRect, (Vector2){p->x, p->y}, WHITE);
+    // const PlayerPhysics *pp = ecs_get(world, GetPlayerEntity(), PlayerPhysics);
+    // cpBodyEachShape(pp->body, DrawShapeCallback, NULL);
+    DrawTextureRec(playerData->texture, playerData->frameRect, (Vector2){p->x - playerData->width / 2, p->y - playerData->height / 2}, WHITE);
 }
 
 ecs_entity_t CreatePlayerEntity(ecs_world_t *world) {
     if (!GetPlayerEntity()) {
         ecs_entity_t player = ecs_entity(world, {.name = "Player"});
 
-        ecs_add(world, player, Position);
-        ecs_add(world, player, Velocity);
-        ecs_add(world, player, PlayerData);
         ecs_set(world, player, Velocity, {0.0f, 0.0f});
 
         Texture2D playerTexture = LoadTexture(GetAssetPath("scarfy.png"));
-        playerTexture.width /= 3;
-        playerTexture.height /= 3;
+        playerTexture.width /= 4;
+        playerTexture.height /= 4;
         Rectangle frameRect = {0.0f, 0.0f, playerTexture.width / 6.0f, (float)playerTexture.height};
         ecs_set(
             world,
@@ -118,7 +120,6 @@ ecs_entity_t CreatePlayerEntity(ecs_world_t *world) {
                 .width = frameRect.width,
                 .height = frameRect.height,
                 .direction = NONE,
-                .rectColor = (Color){0, 0, 255, 50},
             });
         return player;
     } else {
@@ -126,7 +127,25 @@ ecs_entity_t CreatePlayerEntity(ecs_world_t *world) {
     }
 }
 
-void InitPlayerPosition(ecs_world_t *world, Vector2 position) { ecs_set(world, GetPlayerEntity(), Position, {position.x, position.y}); }
+void InitPlayerPosition(ecs_world_t *world, Vector2 position) {
+    ecs_set(world, GetPlayerEntity(), Position, {position.x, position.y});
+    const Velocity *v = ecs_get(world, GetPlayerEntity(), Velocity);
+    cpFloat mass = 1.0;
+    cpFloat radius = 20.0;
+    cpFloat moment = cpMomentForCircle(mass, 0, radius, cpvzero);
+
+    cpBody *body = cpBodyNew(mass, moment);
+    cpBodySetPosition(body, cpv(position.x, position.y));
+    cpSpaceAddBody(GetSpace(), body);
+
+    cpShape *shape = cpCircleShapeNew(body, radius, cpvzero);
+    cpShapeSetElasticity(shape, 0.0);
+    cpShapeSetFriction(shape, 1.0);
+    cpSpaceAddShape(GetSpace(), shape);
+
+    ecs_set(world, GetPlayerEntity(), PlayerPhysics, {.body = body, .shape = shape});
+    ecs_set(world, GetPlayerEntity(), PlayerSpawn, {position.x, position.y});
+}
 
 void FreePlayerEntity(ecs_world_t *world) {
     const PlayerData *playerData = ecs_get(world, GetPlayerEntity(), PlayerData);
