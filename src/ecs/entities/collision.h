@@ -39,7 +39,11 @@ void ExtendSegment(const cpVect a, const cpVect b, cpVect *prev, cpVect *next) {
     if (length > 0) {
         cpVect unit_dir = cpvmult(dir, 1.0 / length);
         *prev = cpvsub(a, cpvmult(unit_dir, 1.0));
+        prev->x *= TILE_SCALE;
+        prev->y *= TILE_SCALE;
         *next = cpvadd(b, cpvmult(unit_dir, 1.0));
+        next->x *= TILE_SCALE;
+        next->y *= TILE_SCALE;
     } else {
         *prev = a;
         *next = b;
@@ -76,8 +80,11 @@ void DrawCollisionRectangle() {
         for (int i = 0; i < it.count; i++) {
             ecs_entity_t child = it.entities[i];
             const TileCollider *tc = ecs_get(GetWorld(), child, TileCollider);
+            cpVect a = cpSegmentShapeGetA(tc->shape);
+            cpVect b = cpSegmentShapeGetB(tc->shape);
+
             if (tc) {
-                DrawLineEx(tc->a, tc->b, 2.0f, RED);
+                DrawLineEx((Vector2){a.x, a.y}, (Vector2){b.x, b.y}, 2.0f, RED);
             }
         }
     }

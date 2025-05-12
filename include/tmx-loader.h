@@ -126,6 +126,7 @@ tmx_map *LoadTMX(const char *fileName) {
         return NULL;
     }
     TraceLog(LOG_INFO, "TMX: Loaded %ix%i map", map->width, map->height);
+
     return map;
 }
 

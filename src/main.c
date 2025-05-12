@@ -65,7 +65,9 @@ int main(void) {
 
         BeginDrawing();
         ClearBackground(RAYWHITE);
-        DrawRenderTextureFixed(mapTexture, 0, 0, WHITE);
+        DrawRenderTextureFixed(mapTexture, 0, 0, TILE_SCALE, WHITE);
+        // DrawCollisionRectangle();
+
         DrawPlayer(world);
 
         EndDrawing();

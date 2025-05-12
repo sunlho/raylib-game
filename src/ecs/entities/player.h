@@ -128,10 +128,12 @@ ecs_entity_t CreatePlayerEntity(ecs_world_t *world) {
 }
 
 void InitPlayerPosition(ecs_world_t *world, Vector2 position) {
+    position.x *= TILE_SCALE;
+    position.y *= TILE_SCALE;
     ecs_set(world, GetPlayerEntity(), Position, {position.x, position.y});
     const Velocity *v = ecs_get(world, GetPlayerEntity(), Velocity);
-    cpFloat mass = 1.0;
-    cpFloat radius = 20.0;
+    cpFloat mass = 1.0f;
+    cpFloat radius = 25.0f;
     cpFloat moment = cpMomentForCircle(mass, 0, radius, cpvzero);
 
     cpBody *body = cpBodyNew(mass, moment);

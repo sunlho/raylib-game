@@ -51,7 +51,6 @@ RenderTexture2D InitMap(const char *mapPath) {
 
     BeginTextureMode(mapTexture);
     DrawTMX(map, 0, 0, RAYWHITE);
-    // DrawCollisionRectangle();
     EndTextureMode();
     return mapTexture;
 }
