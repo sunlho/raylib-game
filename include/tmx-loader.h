@@ -35,6 +35,10 @@
 
 #include "raylib.h"
 #include "tmx.h"
+typedef struct LayerRenderTexture {
+    RenderTexture2D texture;
+    struct LayerRenderTexture *next;
+} LayerRenderTexture;
 
 // TMX functions
 tmx_map *LoadTMX(const char *fileName);
@@ -46,7 +50,7 @@ void DrawTMXLayer(tmx_map *map, tmx_layer *layer, int posX, int posY, Color tint
 void DrawTMXTile(tmx_tile *tile, int posX, int posY, Color tint);
 void DrawTMXLayerObjectFunc(tmx_map *map, tmx_object *obj, int posX, int posY, Color tint);
 void DrawTmxTileCollisionFunc(tmx_tile *tile, int posX, int posY);
-RenderTexture2D InitMap(const char *mapPath);
+LayerRenderTexture *InitMap(const char *mapPath);
 
 #endif // INCLUDE_TMX_LOADER_H
 
@@ -130,8 +134,6 @@ tmx_map *LoadTMX(const char *fileName) {
     return map;
 }
 
-RenderTexture2D InitMap(const char *);
-
 /**
  * Unload the given TMX map.
  *
@@ -153,10 +155,11 @@ void UnloadTMX(tmx_map *map) {
  */
 void DrawTMXPolyline(double offset_x, double offset_y, double **points, int points_count, Color color) {
     for (int i = 1; i < points_count; i++) {
-        DrawLineEx((Vector2){(float)(offset_x + points[i - 1][0]), (float)(offset_y + points[i - 1][1])},
-                   (Vector2){(float)(offset_x + points[i][0]), (float)(offset_y + points[i][1])},
-                   RAYLIB_TMX_LINE_THICKNESS,
-                   color);
+        DrawLineEx(
+            (Vector2){(float)(offset_x + points[i - 1][0]), (float)(offset_y + points[i - 1][1])},
+            (Vector2){(float)(offset_x + points[i][0]), (float)(offset_y + points[i][1])},
+            RAYLIB_TMX_LINE_THICKNESS,
+            color);
     }
 }
 
@@ -166,10 +169,11 @@ void DrawTMXPolyline(double offset_x, double offset_y, double **points, int poin
 void DrawTMXPolygon(double offset_x, double offset_y, double **points, int points_count, Color color) {
     DrawTMXPolyline(offset_x, offset_y, points, points_count, color);
     if (points_count > 2) {
-        DrawLineEx((Vector2){(float)(offset_x + points[0][0]), (float)(offset_y + points[0][1])},
-                   (Vector2){(float)(offset_x + points[points_count - 1][0]), (float)(offset_y + points[points_count - 1][1])},
-                   RAYLIB_TMX_LINE_THICKNESS,
-                   color);
+        DrawLineEx(
+            (Vector2){(float)(offset_x + points[0][0]), (float)(offset_y + points[0][1])},
+            (Vector2){(float)(offset_x + points[points_count - 1][0]), (float)(offset_y + points[points_count - 1][1])},
+            RAYLIB_TMX_LINE_THICKNESS,
+            color);
     }
 }
 
@@ -423,12 +427,6 @@ void DrawTMXLayers(tmx_map *map, tmx_layer *layers, int posX, int posY, Color ti
     }
 }
 
-void DrawTMXTileset(tmx_map *map, tmx_tileset_list *tileset, int posX, int posY, Color tint) {
-    while (tileset) {
-        tileset = tileset->next;
-    }
-}
-
 /**
  * Render the given map to the screen.
  *
@@ -441,7 +439,6 @@ void DrawTMX(tmx_map *map, int posX, int posY, Color tint) {
     Color background = ColorFromTMX(map->backgroundcolor);
     DrawRectangle(posX, posY, map->width, map->height, background);
     DrawTMXLayers(map, map->ly_head, posX, posY, tint);
-    DrawTMXTileset(map, map->ts_head, posX, posY, tint);
 }
 
 #endif // TMX_LOADER_IMPLEMENTATION_ONCE

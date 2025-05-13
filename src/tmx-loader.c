@@ -37,20 +37,26 @@ void DrawTmxTileCollisionFunc(tmx_tile *tile, int posX, int posY) {
     }
 }
 
-RenderTexture2D InitMap(const char *mapPath) {
-    tmx_map *map = LoadTMX(mapPath);
-    if (map == NULL) {
-        fprintf(stderr, "Failed to load map: %s\n", mapPath);
-        return (RenderTexture2D){0};
+LayerRenderTexture *InitLayerRenderTexture(tmx_map *map, tmx_layer *layer, int tex_width, int tex_height) {
+    LayerRenderTexture *layerTexture = (LayerRenderTexture *)malloc(sizeof(LayerRenderTexture));
+    layerTexture->texture = LoadRenderTexture(tex_width, tex_height);
+    BeginTextureMode(layerTexture->texture);
+    ClearBackground(BLANK);
+    DrawTMXLayer(map, layer, 0, 0, WHITE);
+    EndTextureMode();
+    if (layer->next) {
+        layerTexture->next = InitLayerRenderTexture(map, layer->next, tex_width, tex_height);
+    } else {
+        layerTexture->next = NULL;
     }
+    return layerTexture;
+}
 
+LayerRenderTexture *InitMap(const char *mapPath) {
+    tmx_map *map = LoadTMX(mapPath);
     int tex_width = map->width * map->tile_width;
     int tex_height = map->height * map->tile_height;
-
-    RenderTexture2D mapTexture = LoadRenderTexture(tex_width, tex_height);
-
-    BeginTextureMode(mapTexture);
-    DrawTMX(map, 0, 0, RAYWHITE);
-    EndTextureMode();
-    return mapTexture;
+    tmx_layer *layer = map->ly_head;
+    LayerRenderTexture *layerTextures = InitLayerRenderTexture(map, layer, tex_width, tex_height);
+    return layerTextures;
 }
