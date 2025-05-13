@@ -40,16 +40,6 @@
    <frame tileid="66" duration="250"/>
   </animation>
  </tile>
- <tile id="40">
-  <objectgroup draworder="index" id="3">
-   <object id="4" x="0" y="16">
-    <polyline points="0,0 16,0"/>
-   </object>
-   <object id="5" name="Collisions" type="Collisions" x="0" y="16">
-    <polyline points="0,0 16,0"/>
-   </object>
-  </objectgroup>
- </tile>
  <tile id="41">
   <objectgroup draworder="index" id="2">
    <object id="6" name="Collisions" type="Collisions" x="0" y="16">
@@ -201,9 +191,9 @@
  </tile>
  <tile id="148">
   <animation>
-   <frame tileid="148" duration="250"/>
    <frame tileid="157" duration="250"/>
    <frame tileid="166" duration="250"/>
+   <frame tileid="175" duration="250"/>
   </animation>
  </tile>
  <tile id="150">

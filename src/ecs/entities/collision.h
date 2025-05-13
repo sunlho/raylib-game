@@ -9,7 +9,7 @@
 #include "raylib.h"
 #include "raymath.h"
 
-void PolylineCollisionEntity(ecs_world_t *world, int posX, int posY, int tileId, tmx_shape *shape);
+void PolylineCollisionEntity(ecs_world_t *world, tmx_object *collision, double posX, double posY, int tileId, double scale);
 ecs_entity_t GetCollisionEntityGroup();
 void DrawCollisionRectangle();
 
@@ -32,42 +32,25 @@ ecs_entity_t GetCollisionEntityGroup() {
     return group;
 }
 
-void ExtendSegment(const cpVect a, const cpVect b, cpVect *prev, cpVect *next) {
-    cpVect dir = cpvsub(b, a);
-
-    cpFloat length = cpvlength(dir);
-    if (length > 0) {
-        cpVect unit_dir = cpvmult(dir, 1.0 / length);
-        *prev = cpvsub(a, cpvmult(unit_dir, 1.0));
-        prev->x *= TILE_SCALE;
-        prev->y *= TILE_SCALE;
-        *next = cpvadd(b, cpvmult(unit_dir, 1.0));
-        next->x *= TILE_SCALE;
-        next->y *= TILE_SCALE;
-    } else {
-        *prev = a;
-        *next = b;
-    }
-}
-
-void PolylineCollisionEntity(ecs_world_t *world, int posX, int posY, int tileId, tmx_shape *shape) {
+void PolylineCollisionEntity(ecs_world_t *world, tmx_object *collision, double posX, double posY, int tileId, double scale) {
+    tmx_shape *shape = collision->content.shape;
     if (shape->points_len == 1)
         return;
     ecs_entity_t group = GetCollisionEntityGroup();
     cpBody *staticBody = cpSpaceGetStaticBody(GetSpace());
+    cpVect offset = cpvmult(cpv(collision->x, collision->y), scale);
+    cpVect position = cpvadd(cpv(posX, posY), offset);
     for (int i = 0; i < shape->points_len - 1; i++) {
-        ecs_entity_t collider = ecs_new(world);
-        cpVect a = cpv(posX + shape->points[i][0], posY + shape->points[i][1]);
-        cpVect b = cpv(posX + shape->points[(i + 1)][0], posY + shape->points[(i + 1)][1]);
-        cpVect prev, next;
-        ExtendSegment(a, b, &prev, &next);
+        cpVect p1 = cpvadd(cpvmult(cpv(shape->points[i][0], shape->points[i][1]), scale), position);
+        cpVect p2 = cpvadd(cpvmult(cpv(shape->points[i + 1][0], shape->points[i + 1][1]), scale), position);
 
-        cpShape *wall = cpSegmentShapeNew(staticBody, prev, next, 2.0);
+        cpShape *wall = cpSegmentShapeNew(staticBody, p1, p2, 2.0);
         cpShapeSetFriction(wall, 1.0);
         cpShapeSetElasticity(wall, 0.0);
         cpSpaceAddShape(GetSpace(), wall);
 
-        ecs_set(world, collider, TileCollider, {.tileId = tileId, .a = {prev.x, prev.y}, .b = {next.x, next.y}, .shape = wall});
+        ecs_entity_t collider = ecs_new(world);
+        ecs_set(world, collider, TileCollider, {.tileId = tileId, .a = {p1.x, p1.y}, .b = {p2.x, p2.y}, .shape = wall});
         if (group) {
             ecs_add_pair(world, collider, EcsChildOf, group);
         }
@@ -84,7 +67,7 @@ void DrawCollisionRectangle() {
             cpVect b = cpSegmentShapeGetB(tc->shape);
 
             if (tc) {
-                DrawLineEx((Vector2){a.x, a.y}, (Vector2){b.x, b.y}, 2.0f, RED);
+                DrawLineEx((Vector2){a.x, a.y}, (Vector2){b.x, b.y}, 1, RED);
             }
         }
     }

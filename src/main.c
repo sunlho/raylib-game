@@ -56,7 +56,8 @@ int main(void) {
 
     SetPlayerEntity(player);
 
-    LayerRenderTexture *mapTexture = InitMap(GetAssetPath("island.tmx"));
+    TMXRenderContext ctx = {NULL, NULL, 0, 0, WHITE, TILE_SCALE};
+    LayerRenderTexture *mapTexture = InitMap(GetAssetPath("island.tmx"), &ctx);
     LayerRenderTexture *mapTextureHead = mapTexture;
 
     ECS_IMPORT(world, Movement);
@@ -67,12 +68,14 @@ int main(void) {
         BeginDrawing();
         ClearBackground(BLACK);
 
-        while (mapTexture->next) {
-            DrawRenderTextureFixed(mapTexture->texture, 0, 0, TILE_SCALE, WHITE);
-            mapTexture = mapTexture->next;
-        }
+        // while (mapTexture->next) {
+        DrawRenderTextureFixed(mapTexture->texture, 0, 0, 1, WHITE);
+        //     mapTexture = mapTexture->next;
+        // }
+        DrawAnimatedTiles(ctx.animatedTiles, &ctx);
         if (!mapTexture->next)
             mapTexture = mapTextureHead;
+        // DrawCollisionRectangle();
 
         DrawPlayer(world);
 

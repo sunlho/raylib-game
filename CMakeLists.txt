@@ -14,7 +14,7 @@ target_include_directories(${PROJECT_NAME} PRIVATE include src)
 target_link_libraries(${PROJECT_NAME} PRIVATE raylib tmx flecs::flecs_static chipmunk2d::chipmunk2d)
 
 
-if(NOT CMAKE_BUILD_TYPE STREQUAL "Release")
+if(NOT CMAKE_BUILD_TYPE STREQUAL "Debug")
     set(ASSETS_PATH "${CMAKE_SOURCE_DIR}/assets")
 else()
     set(ASSETS_PATH "${CMAKE_CURRENT_BINARY_DIR}/assets")
