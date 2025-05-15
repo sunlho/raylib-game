@@ -9,16 +9,8 @@ typedef struct LayerRenderTexture {
     struct LayerRenderTexture *next;
 } LayerRenderTexture;
 
-typedef struct AnimatedTile {
-    tmx_tile *tile;
-    int posX, posY;
-    struct AnimatedTile *next;
-    int currentFrame;
-} AnimatedTile;
-
 typedef struct TMXRenderContext {
     tmx_map *map;
-    AnimatedTile *animatedTiles;
     double posX;
     double posY;
     Color tint;
@@ -30,11 +22,12 @@ void UnloadTMX(tmx_map *map);
 
 Color ColorFromTMX(uint32_t color);
 void DrawTMXLayer(tmx_layer *layer, TMXRenderContext *ctx);
-void DrawTMXTile(tmx_tile *tile, bool animate, TMXRenderContext *ctx);
-void DrawTMXLayerObjectFunc(tmx_map *map, tmx_object *obj, double posX, double posY, Color tint);
-void DrawTmxTileCollisionFunc(tmx_tile *tile, double posX, double posY, double scale);
+void DrawTMXTile(tmx_tile *tile, bool onlyDraw, TMXRenderContext *ctx);
+
 LayerRenderTexture *InitMap(const char *mapPath, TMXRenderContext *ctx);
-void DrawAnimatedTiles(AnimatedTile *animatedTiles, TMXRenderContext *ctx);
+
+void DrawTMXLayerObjectCallBack(tmx_map *map, tmx_object *obj, double posX, double posY, Color tint);
+void DrawTMXTileCallBack(tmx_tile *tile, TMXRenderContext *ctx);
 
 #endif // INCLUDE_TMX_LOADER_H
 
@@ -97,16 +90,15 @@ void DrawTMXLayerObjects(tmx_object_group *objgr, TMXRenderContext *ctx) {
     Color color = ColorFromTMX(objgr->color);
     while (head) {
         if (head->visible) {
-            if (DrawTMXLayerObjectFunc) {
-                DrawTMXLayerObjectFunc(ctx->map, head, ctx->posX, ctx->posY, ctx->tint);
+            if (DrawTMXLayerObjectCallBack) {
+                DrawTMXLayerObjectCallBack(ctx->map, head, ctx->posX, ctx->posY, ctx->tint);
             }
             if (head->obj_type == OT_TILE) {
                 tmx_tile *tile = ctx->map->tiles[head->content.gid];
                 if (tile != NULL) {
                     Rectangle dest = (Rectangle){(float)(ctx->posX + head->x), (float)(ctx->posY + head->y), (float)head->width, (float)head->height};
-                    TMXRenderContext _ctx = {ctx->map, ctx->animatedTiles, dest.x, dest.y, ctx->tint, ctx->scale};
+                    TMXRenderContext _ctx = {ctx->map, dest.x, dest.y, ctx->tint, ctx->scale};
                     DrawTMXTile(tile, false, &_ctx);
-                    ctx->animatedTiles = _ctx.animatedTiles;
                 }
             }
             head = head->next;
@@ -114,19 +106,9 @@ void DrawTMXLayerObjects(tmx_object_group *objgr, TMXRenderContext *ctx) {
     }
 }
 
-void DrawTMXTile(tmx_tile *tile, bool animate, TMXRenderContext *ctx) {
-    if (tile->collision && !animate) {
-        DrawTmxTileCollisionFunc(tile, ctx->posX, ctx->posY, ctx->scale);
-    }
-    if (tile->animation && !animate) {
-        AnimatedTile *animTile = malloc(sizeof(AnimatedTile));
-        animTile->tile = tile;
-        animTile->posX = ctx->posX;
-        animTile->posY = ctx->posY;
-        animTile->currentFrame = 0;
-        animTile->next = ctx->animatedTiles;
-        ctx->animatedTiles = animTile;
-        return;
+void DrawTMXTile(tmx_tile *tile, bool onlyDraw, TMXRenderContext *ctx) {
+    if (DrawTMXTileCallBack && !onlyDraw) {
+        DrawTMXTileCallBack(tile, ctx);
     }
     tmx_image *im = tile->image ? tile->image : tile->tileset->image;
     if (im && im->resource_image) {
@@ -181,9 +163,8 @@ void DrawTMXLayerTiles(tmx_layer *layer, TMXRenderContext *ctx) {
                 tmx_tileset *ts = ctx->map->tiles[gid]->tileset;
                 double drawX = ctx->posX + x * ts->tile_width * ctx->scale;
                 double drawY = ctx->posY + y * ts->tile_height * ctx->scale;
-                TMXRenderContext _ctx = {ctx->map, ctx->animatedTiles, drawX, drawY, newTint, ctx->scale};
+                TMXRenderContext _ctx = {ctx->map, drawX, drawY, newTint, ctx->scale};
                 DrawTMXTile(ctx->map->tiles[gid], false, &_ctx);
-                ctx->animatedTiles = _ctx.animatedTiles;
             }
         }
     }

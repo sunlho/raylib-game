@@ -2,13 +2,16 @@
 #include "ecs/components/basic.h"
 #include "ecs/components/physics.h"
 #include "ecs/components/player.h"
+#include "ecs/components/tile-animate.h"
 #include "ecs/components/tile-collider.h"
+#include "ecs/entities/tile-animate.h"
 #include "flecs.h"
 #include "raylib.h"
 #include "tmx-loader.h"
 #include "tmx.h"
 #include "utils.h"
 #include <stdio.h>
+
 #define CONTEXT_IMPLEMENTATION
 #include "context.h"
 #define ECS_PLAYER_ENTITY_IMPLEMENTATION
@@ -19,6 +22,10 @@
 #include "ecs/systems/movement.h"
 #define ECS_PHYSICS_BASIC_IMPLEMENTATION
 #include "ecs/systems/physics-basic.h"
+#define ECS_TILE_ANIMATE_ENTITY_IMPLEMENTATION
+#include "ecs/entities/tile-animate.h"
+#define STB_DS_IMPLEMENTATION
+#include "stb_ds.h"
 
 ECS_COMPONENT_DECLARE(Position);
 ECS_COMPONENT_DECLARE(Velocity);
@@ -28,6 +35,7 @@ ECS_COMPONENT_DECLARE(PlayerPhysics);
 ECS_COMPONENT_DECLARE(TileCollider);
 ECS_COMPONENT_DECLARE(PhysicsBody);
 ECS_COMPONENT_DECLARE(PhysicsWorld);
+ECS_COMPONENT_DECLARE(TileAnimation);
 
 int main(void) {
     InitWindow(SCREEN_WIDTH, SCREEN_HEIGHT, "[raylib-tmx] example");
@@ -44,6 +52,7 @@ int main(void) {
     ECS_COMPONENT_DEFINE(world, TileCollider);
     ECS_COMPONENT_DEFINE(world, PhysicsBody);
     ECS_COMPONENT_DEFINE(world, PhysicsWorld);
+    ECS_COMPONENT_DEFINE(world, TileAnimation);
 
     ecs_singleton_set(world, EcsRest, {0});
     SetWorld(world);
@@ -56,7 +65,7 @@ int main(void) {
 
     SetPlayerEntity(player);
 
-    TMXRenderContext ctx = {NULL, NULL, 0, 0, WHITE, TILE_SCALE};
+    TMXRenderContext ctx = {NULL, 0, 0, WHITE, TILE_SCALE};
     LayerRenderTexture *mapTexture = InitMap(GetAssetPath("island.tmx"), &ctx);
     LayerRenderTexture *mapTextureHead = mapTexture;
 
@@ -72,10 +81,9 @@ int main(void) {
         DrawRenderTextureFixed(mapTexture->texture, 0, 0, 1, WHITE);
         //     mapTexture = mapTexture->next;
         // }
-        DrawAnimatedTiles(ctx.animatedTiles, &ctx);
         if (!mapTexture->next)
             mapTexture = mapTextureHead;
-        // DrawCollisionRectangle();
+        DrawAnimatedTiles(&ctx);
 
         DrawPlayer(world);
 
