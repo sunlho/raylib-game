@@ -17,10 +17,10 @@ void DrawTMXLayerObjectCallBack(tmx_object *obj, TMXRenderContext *ctx) {
     if (obj->type) {
         if (!strcmp(obj->type, "start")) {
             const PlayerData *playerTag = ecs_get(GetWorld(), GetPlayerEntity(), PlayerData);
-            InitPlayerPosition(GetWorld(), (Vector2){obj->x, obj->y}, ctx->scale);
+            InitPlayerPosition(GetWorld(), (Vector2){obj->x, obj->y});
         }
         if (!strcmp(obj->type, "Collision")) {
-            PolygonCollisionEntity(GetWorld(), obj, ctx->posX + (obj->x * ctx->scale), ctx->posY + (obj->y * ctx->scale), ctx->scale);
+            PolygonCollisionEntity(GetWorld(), obj, ctx->posX + obj->x, ctx->posY + obj->y);
         }
     }
 }
@@ -31,7 +31,7 @@ bool DrawTMXTileCallBack(tmx_tile *tile, TMXRenderContext *ctx) {
     //     while (collision) {
     //         switch (collision->obj_type) {
     //         case OT_POLYLINE:
-    //             PolylineCollisionEntity(GetWorld(), collision, ctx->posX, ctx->posY, tile->id, ctx->scale);
+    //             PolylineCollisionEntity(GetWorld(), collision, ctx->posX, ctx->posY, tile->id);
     //             break;
     //         }
     //         collision = collision->next;
@@ -39,7 +39,6 @@ bool DrawTMXTileCallBack(tmx_tile *tile, TMXRenderContext *ctx) {
     // }
     if (tile->animation) {
         CreateTileAnimationEntity(GetWorld(), tile, ctx->posX, ctx->posY);
-        return false;
     }
     return true;
 }
@@ -63,8 +62,9 @@ LayerRenderTexture *InitLayerRenderTexture(tmx_layer *layer, double tex_width, d
 LayerRenderTexture *InitMap(const char *mapPath, TMXRenderContext *ctx) {
     tmx_map *map = LoadTMX(mapPath);
     ctx->map = map;
-    double tex_width = map->width * map->tile_width * ctx->scale;
-    double tex_height = map->height * map->tile_height * ctx->scale;
+    double tex_width = map->width * map->tile_width;
+    double tex_height = map->height * map->tile_height;
+    SetWorldSize(tex_width, tex_height);
     LayerRenderTexture *layerTextures = InitLayerRenderTexture(map->ly_head, tex_width, tex_height, ctx);
     return layerTextures;
 }

@@ -45,7 +45,7 @@ void DrawAnimatedTiles(TMXRenderContext *ctx) {
         tmx_tile *tile = ctx->map->tiles[gid + 1];
 
         while (tag) {
-            TMXRenderContext _ctx = {ctx->map, tag->posX, tag->posY, ctx->tint, ctx->scale};
+            TMXRenderContext _ctx = {ctx->map, tag->posX, tag->posY, ctx->tint};
             DrawTMXTile(tile, true, &_ctx);
             tag = tag->next;
         }

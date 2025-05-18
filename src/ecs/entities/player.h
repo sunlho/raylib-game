@@ -12,7 +12,7 @@
 
 void DrawPlayer(ecs_world_t *world);
 ecs_entity_t CreatePlayerEntity(ecs_world_t *world);
-void InitPlayerPosition(ecs_world_t *world, Vector2 position, double scale);
+void InitPlayerPosition(ecs_world_t *world, Vector2 position);
 void FreePlayerEntity(ecs_world_t *world);
 
 #endif // ECS_PLAYER_ENTITY_H
@@ -87,13 +87,13 @@ void DrawPlayer(ecs_world_t *world) {
 
     DrawTextureRec(playerData->texture, playerData->frameRect, (Vector2){p->x - playerData->width / 2, p->y - playerData->height / 2}, WHITE);
 
-    const PlayerPhysics *pp = ecs_get(world, GetPlayerEntity(), PlayerPhysics);
-    b2ShapeId shapeIds[1];
-    int returnCount = b2Body_GetShapes(pp->body, shapeIds, 1);
-    b2ShapeId shapeId = shapeIds[0];
-    b2Circle c = b2Shape_GetCircle(shapeId);
-    b2Vec2 center = b2Body_GetWorldPoint(pp->body, c.center);
-    DrawCircleLines(center.x, center.y, c.radius, BLUE);
+    // const PlayerPhysics *pp = ecs_get(world, GetPlayerEntity(), PlayerPhysics);
+    // b2ShapeId shapeIds[1];
+    // int returnCount = b2Body_GetShapes(pp->body, shapeIds, 1);
+    // b2ShapeId shapeId = shapeIds[0];
+    // b2Circle c = b2Shape_GetCircle(shapeId);
+    // b2Vec2 center = b2Body_GetWorldPoint(pp->body, c.center);
+    // DrawCircleLines(center.x, center.y, c.radius, BLUE);
 }
 
 ecs_entity_t CreatePlayerEntity(ecs_world_t *world) {
@@ -103,8 +103,8 @@ ecs_entity_t CreatePlayerEntity(ecs_world_t *world) {
         ecs_set(world, player, Velocity, {0.0f, 0.0f});
 
         Texture2D playerTexture = LoadTexture(GetAssetPath("scarfy.png"));
-        playerTexture.width /= 4;
-        playerTexture.height /= 4;
+        playerTexture.width /= 6;
+        playerTexture.height /= 6;
         Rectangle frameRect = {0.0f, 0.0f, playerTexture.width / 6.0f, (float)playerTexture.height};
         ecs_set(
             world,
@@ -123,9 +123,7 @@ ecs_entity_t CreatePlayerEntity(ecs_world_t *world) {
     }
 }
 
-void InitPlayerPosition(ecs_world_t *world, Vector2 position, double scale) {
-    position.x *= scale;
-    position.y *= scale;
+void InitPlayerPosition(ecs_world_t *world, Vector2 position) {
     ecs_set(world, GetPlayerEntity(), Position, {position.x, position.y});
     const Velocity *v = ecs_get(world, GetPlayerEntity(), Velocity);
 
@@ -133,7 +131,7 @@ void InitPlayerPosition(ecs_world_t *world, Vector2 position, double scale) {
     bodyDef.type = b2_dynamicBody;
     bodyDef.position = (b2Vec2){position.x, position.y};
 
-    b2Circle circle = {0.0f, 0.0f, 16.0f};
+    b2Circle circle = {0.0f, 0.0f, 10.0f};
     b2BodyId body = b2CreateBody(GetPhyWorld(), &bodyDef);
     b2ShapeDef shapeDef = b2DefaultShapeDef();
     shapeDef.density = 1.0f;
@@ -142,6 +140,7 @@ void InitPlayerPosition(ecs_world_t *world, Vector2 position, double scale) {
 
     ecs_set(world, GetPlayerEntity(), PlayerPhysics, {.body = body});
     ecs_set(world, GetPlayerEntity(), PlayerSpawn, {position.x, position.y});
+    GetCamera()->target = (Vector2){position.x, position.y};
 }
 
 void FreePlayerEntity(ecs_world_t *world) {

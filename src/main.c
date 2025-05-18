@@ -40,9 +40,13 @@ int main(void) {
     InitWindow(SCREEN_WIDTH, SCREEN_HEIGHT, "[raylib-tmx] example");
     SetTargetFPS(FPS);
 
-    ecs_world_t *world = ecs_init();
-    bool isDebug = false;
+    Camera2D camera = {0};
+    camera.zoom = 2.0f;
+    camera.offset = (Vector2){SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2};
+    SetCamera(&camera);
 
+    ecs_world_t *world = ecs_init();
+    SetWorld(world);
     ECS_COMPONENT_DEFINE(world, Position);
     ECS_COMPONENT_DEFINE(world, Velocity);
     ECS_COMPONENT_DEFINE(world, PlayerData);
@@ -51,26 +55,26 @@ int main(void) {
     ECS_COMPONENT_DEFINE(world, TileAnimation);
 
     ecs_singleton_set(world, EcsRest, {0});
-    SetWorld(world);
 
     b2WorldId phyWorld = InitPhysicsWorld(world);
     SetPhyWorld(phyWorld);
+
     ECS_IMPORT(world, PhysicsBasic);
 
     ecs_entity_t player = CreatePlayerEntity(world);
-
     SetPlayerEntity(player);
 
-    TMXRenderContext ctx = {NULL, 0, 0, WHITE, TILE_SCALE};
+    TMXRenderContext ctx = {NULL, 0, 0, WHITE};
     LayerRenderTexture *mapTexture = InitMap(GetAssetPath("island.tmx"), &ctx);
     LayerRenderTexture *mapTextureHead = mapTexture;
 
     ECS_IMPORT(world, Movement);
 
     while (!WindowShouldClose() && !ecs_should_quit(world)) {
-        ecs_progress(world, GetFrameTime());
 
+        ecs_progress(world, GetFrameTime());
         BeginDrawing();
+        BeginMode2D(camera);
         ClearBackground(BLACK);
 
         DrawRenderTextureFixed(mapTexture->texture, 0, 0, 1, WHITE);
@@ -81,6 +85,7 @@ int main(void) {
         DrawRenderTextureFixed(mapTexture->next->next->texture, 0, 0, 1, WHITE);
 
         DrawPlayer(world);
+        EndMode2D();
 
         EndDrawing();
     }

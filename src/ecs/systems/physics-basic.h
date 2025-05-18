@@ -23,11 +23,23 @@ void PhysicsStepSystem(const ecs_iter_t *it) {
 void SyncPositionSystem(ecs_iter_t *it) {
     Position *p = ecs_field(it, Position, 0);
     PlayerPhysics *pb = ecs_field(it, PlayerPhysics, 2);
-
+    Camera2D *camera = GetCamera();
     for (int i = 0; i < it->count; i++) {
         b2Vec2 pos = b2Body_GetPosition(pb[i].body);
         p[i].x = pos.x;
         p[i].y = pos.y;
+        Vector2 target = Vector2Lerp(camera->target, (Vector2){p[i].x, p[i].y}, 0.1f);
+        float halfW = (SCREEN_WIDTH / 2.0f) / camera->zoom;
+        float halfH = (SCREEN_HEIGHT / 2.0f) / camera->zoom;
+        if (target.x < halfW)
+            target.x = halfW;
+        if (target.y < halfH)
+            target.y = halfH;
+        if (target.x > GetWorldSize().x - halfW)
+            target.x = GetWorldSize().x - halfW;
+        if (target.y > GetWorldSize().y - halfH)
+            target.y = GetWorldSize().y - halfH;
+        camera->target = target;
     }
 }
 

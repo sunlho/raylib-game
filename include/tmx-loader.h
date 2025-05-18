@@ -14,7 +14,6 @@ typedef struct TMXRenderContext {
     double posX;
     double posY;
     Color tint;
-    double scale;
 } TMXRenderContext;
 
 tmx_map *LoadTMX(const char *fileName);
@@ -97,7 +96,7 @@ void DrawTMXLayerObjects(tmx_object_group *objgr, TMXRenderContext *ctx) {
                 tmx_tile *tile = ctx->map->tiles[head->content.gid];
                 if (tile != NULL) {
                     Rectangle dest = (Rectangle){(float)(ctx->posX + head->x), (float)(ctx->posY + head->y), (float)head->width, (float)head->height};
-                    TMXRenderContext _ctx = {ctx->map, dest.x, dest.y, ctx->tint, ctx->scale};
+                    TMXRenderContext _ctx = {ctx->map, dest.x, dest.y, ctx->tint};
                     DrawTMXTile(tile, false, &_ctx);
                 }
             }
@@ -121,8 +120,8 @@ void DrawTMXTile(tmx_tile *tile, bool onlyDraw, TMXRenderContext *ctx) {
             Rectangle destRect = {
                 ctx->posX,
                 ctx->posY,
-                srcRect.width * ctx->scale,
-                srcRect.height * ctx->scale,
+                srcRect.width,
+                srcRect.height,
             };
             DrawTexturePro(*image, srcRect, destRect, (Vector2){0, 0}, 0, ctx->tint);
         }
@@ -164,9 +163,9 @@ void DrawTMXLayerTiles(tmx_layer *layer, TMXRenderContext *ctx) {
 
             if (ctx->map->tiles[gid]) {
                 tmx_tileset *ts = ctx->map->tiles[gid]->tileset;
-                double drawX = ctx->posX + x * ts->tile_width * ctx->scale;
-                double drawY = ctx->posY + y * ts->tile_height * ctx->scale;
-                TMXRenderContext _ctx = {ctx->map, drawX, drawY, newTint, ctx->scale};
+                double drawX = ctx->posX + x * ts->tile_width;
+                double drawY = ctx->posY + y * ts->tile_height;
+                TMXRenderContext _ctx = {ctx->map, drawX, drawY, newTint};
                 DrawTMXTile(ctx->map->tiles[gid], false, &_ctx);
             }
         }
