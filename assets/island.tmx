@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<map version="1.10" tiledversion="1.11.2" orientation="orthogonal" renderorder="right-down" width="58" height="47" tilewidth="16" tileheight="16" infinite="0" nextlayerid="7" nextobjectid="25">
+<map version="1.10" tiledversion="1.11.2" orientation="orthogonal" renderorder="right-down" width="58" height="47" tilewidth="16" tileheight="16" infinite="0" nextlayerid="7" nextobjectid="27">
  <tileset firstgid="1" source="beach_tileset.tsx"/>
  <layer id="1" name="Ground" width="58" height="47">
   <data encoding="base64" compression="zlib">
-   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
+   eJztmFtu00AYhT1ZDZddAEKq1DhjdwNsoOHSriMSoAr2AusoeQBeuhCYUecopyf/2AlxEqfMw1HijB3P5//um6qqboqKioqKiv5z/Qz6Jfo9gn0NzXcd5NxDTYLejmCPQzCC72PQhehTWPs8gn3uoqvEGPlmBuNj4fwS9LWy+R4T53nQk6CnQUtiuw364e5/OyVOzqOaPyPrlHijngU9T7/F7/UIGPqEGET+nFd2/gTvlLjOT4ixcqs8MxupH1p1u6uG8/l/qoe5tA5qg15M7mviWHoA9TdL7IPW+bl6saAeYJPnt29Grts+6MpVb3z67sUHUSNgu7g+Fb6Z/N/C9T+/QzJCHwInH8MH4/P/FvQ96CwcN4mDz52m39q03qTnwc/g7oAxzHZRzvfCqXUc17ZprabPlq6pydbMHD9fu2FrSa6mwS6o0+x/74Qz57u1W7clPvX5tUl3AzNaswF8D+dw7V6mvTWGfXOcls+yzXitSf8/NCPPBsgnC4MVvGDVvNKVizydD5+t6Zhj0u+J0covzKq+rKybcGIdfLVb92WO3aHyTlcOteqa5nawnglrm66ZUyzgHp44lNG677zavW7q/OPdegyxL1m5Pf7HpVyL77G+vAx6NVlfy91HYxSsu9RN5NBlipEozD6cV5mVOdkfrH17+YStr916LW1oXXPvEP7Lsx5mH8wHiD/UOM0LVn7ps1GXwKj+PFScWrOPxp91P+4dlJHrf9+al+NQj2PvEfus2FMerA+67OHssxHbx4v4HYHGDmr0ofu9mFeQQ6MwQ/b5Y47p1q3iJPfeAMf7nqu5Tl64VQ7VPKr+qJwWE+8/995AY2kX6dzc1f8wD/fdqIdss8iHvMq+N/T+N5E1B2/T/7DUZhxzx34vovOWzrlW/wNW9lPNF1a9Oua7K56DrR5I7cCsPGNY/WiuXo2NNTcvMCvXgmPbbBv/RV7p2/fY/HJT/cu+x+aX27Ce4r6LioqKio6jv/4YmTI=
   </data>
  </layer>
  <layer id="2" name="Fringe" width="58" height="47">
@@ -11,11 +11,14 @@
    eJztmFdKxFAUhmcy6ottCwoW1AfLLsSGvS3ChjrFsggb9rYFO9jbFuwNu1tQ8QtOMEaDk6iTwv3hYybh3tzz55zkJPF4hISEhISEhITcpwHvx/9Br/44NyhbsjqC/5U2f8Uu9ZuJr1GLa7WK9auh5p/jWLfYp5/1AxB0+b1hDH/jMOFynxv424Qtl/u8xt8N3Lrcp6Isk/d6dc9oclC/MNLLT/B4CmcOqAXleawUf2VG88F4L0gwB/OwIH1+xrOTzNZsGvPSIQMO4BCOHFC7Sh5aiLUV2iKIuTA85pnfF3gNb9v52a6P2PrluoNBGNLEus152IFd2IN9VX2m+DyeVGiOor8ik2stMm8JlmHlm2Pc4eseHuARniy6Dkuk3737HDP3BE7hTHOcSrbjIQESIQmSNWNyopBLuXeZXedTf6D2vL6vYzo5di7kQT4U6Kxl63dMVX+QlR72Wc52hfSeyyoT8V9y3q5s1GPU/UGtdrY7oBpqoNag11jGx8nz8FoH9dAAjRZ6l/uD3r0ywP4ghEzWZAhfXdANPdBroxwrMlKvw8Q/8o2HSfZNwTTMwKyFPvV6kd+Az1XiX7NhrrRS3jdK7HzPFPpRP703RqP/G5GZ79znzLlwwDWlp0g9+8hVjM3yZUSZDo49UjnpO42QkJCQkJDQ3+gNqLJOjQ==
   </data>
  </layer>
- <objectgroup id="4" name="Objects">
+ <objectgroup id="4" name="Objects" visible="0">
   <object id="1" name="Starting Point" type="start" x="616" y="453">
    <point/>
   </object>
   <object id="5" name="Exit" type="exit" x="336" y="208" width="48" height="48"/>
   <object id="7" name="Resting Spot" type="rest" x="528" y="416" width="48" height="16"/>
+  <object id="25" name="main island" type="Collision" x="336" y="272">
+   <polygon points="38,0 52,0 80,0 96,16 96,32 112,48 112,128 128,144 144,144 160,128 160,48 144,32 144,16 160,0 208,0 256,-48 288,-48 304,-32 304,-16 320,0 336,0 352,16 432,16 448,32 448,48 384,112 384,128 416,160 416,185 476,185 476,212 416,212 416,224 400,240 384,240 368,224 352,224 336,240 304,240 288,224 272,224 240,256 224,256 208,240 192,240 176,256 176,288 160,304 128,304 96,272 80,272 64,288 64,320 32,352 0,352 -112,240 -112,208 -144,176 -176,176 -192,192 -224,192 -256,160 -256,144 -224,112 -208,96 -192,96 -176,80 -144,80 -96,128 -64,128 -48,144 -48,176 -64,192 -64,224 -48,240 -16,240 0,224 0,176 16,160 16,144 -48,80 -64,80 -80,64 -80,48 -32,0 -4,0 10,0 10,-60 38,-60"/>
+  </object>
  </objectgroup>
 </map>

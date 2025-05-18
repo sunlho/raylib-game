@@ -2,11 +2,6 @@
 <tileset version="1.10" tiledversion="1.11.2" name="beach_tileset" tilewidth="16" tileheight="16" tilecount="936" columns="36">
  <image source="beach_tileset.png" width="576" height="416"/>
  <tile id="37">
-  <objectgroup draworder="index" id="2">
-   <object id="1" name="Collisions" type="Collisions" x="0" y="16">
-    <polyline points="0,0 16,-16"/>
-   </object>
-  </objectgroup>
   <animation>
    <frame tileid="37" duration="250"/>
    <frame tileid="46" duration="250"/>
@@ -15,11 +10,6 @@
   </animation>
  </tile>
  <tile id="38">
-  <objectgroup draworder="index" id="2">
-   <object id="1" name="Collisions" type="Collisions" x="0" y="0">
-    <polyline points="0,0 16,0"/>
-   </object>
-  </objectgroup>
   <animation>
    <frame tileid="38" duration="250"/>
    <frame tileid="47" duration="250"/>
@@ -28,11 +18,6 @@
   </animation>
  </tile>
  <tile id="39">
-  <objectgroup draworder="index" id="2">
-   <object id="1" name="Collisions" type="Collisions" x="0" y="0">
-    <polyline points="0,0 16,16"/>
-   </object>
-  </objectgroup>
   <animation>
    <frame tileid="39" duration="250"/>
    <frame tileid="48" duration="250"/>
@@ -41,11 +26,6 @@
   </animation>
  </tile>
  <tile id="41">
-  <objectgroup draworder="index" id="2">
-   <object id="6" name="Collisions" type="Collisions" x="0" y="16">
-    <polyline points="0,0 16,-16"/>
-   </object>
-  </objectgroup>
   <animation>
    <frame tileid="41" duration="250"/>
    <frame tileid="50" duration="250"/>
@@ -54,11 +34,6 @@
   </animation>
  </tile>
  <tile id="42">
-  <objectgroup draworder="index" id="2">
-   <object id="1" name="Collisions" type="Collisions" x="0" y="0">
-    <polyline points="0,0 16,0"/>
-   </object>
-  </objectgroup>
   <animation>
    <frame tileid="42" duration="250"/>
    <frame tileid="51" duration="250"/>
@@ -67,11 +42,6 @@
   </animation>
  </tile>
  <tile id="43">
-  <objectgroup draworder="index" id="2">
-   <object id="1" name="Collisions" type="Collisions" x="0" y="0">
-    <polyline points="0,0 16,16"/>
-   </object>
-  </objectgroup>
   <animation>
    <frame tileid="43" duration="250"/>
    <frame tileid="52" duration="250"/>
@@ -80,11 +50,6 @@
   </animation>
  </tile>
  <tile id="73">
-  <objectgroup draworder="index" id="2">
-   <object id="1" name="Collisions" type="Collisions" x="0" y="16">
-    <polyline points="0,0 0,-16"/>
-   </object>
-  </objectgroup>
   <animation>
    <frame tileid="73" duration="250"/>
    <frame tileid="82" duration="250"/>
@@ -101,11 +66,6 @@
   </animation>
  </tile>
  <tile id="76">
-  <objectgroup draworder="index" id="2">
-   <object id="1" name="Collisions" type="Collisions" x="0" y="0">
-    <polyline points="0,0 16,0"/>
-   </object>
-  </objectgroup>
   <animation>
    <frame tileid="76" duration="250"/>
    <frame tileid="85" duration="250"/>
@@ -122,11 +82,6 @@
   </animation>
  </tile>
  <tile id="79">
-  <objectgroup draworder="index" id="2">
-   <object id="1" name="Collisions" type="Collisions" x="16" y="0">
-    <polyline points="0,0 0,16"/>
-   </object>
-  </objectgroup>
   <animation>
    <frame tileid="79" duration="250"/>
    <frame tileid="88" duration="250"/>
@@ -135,11 +90,6 @@
   </animation>
  </tile>
  <tile id="109">
-  <objectgroup draworder="index" id="2">
-   <object id="1" name="Collisions" type="Collisions" x="16" y="16">
-    <polyline points="0,0 -16,-16"/>
-   </object>
-  </objectgroup>
   <animation>
    <frame tileid="109" duration="250"/>
    <frame tileid="118" duration="250"/>
@@ -164,11 +114,6 @@
   </animation>
  </tile>
  <tile id="115">
-  <objectgroup draworder="index" id="2">
-   <object id="1" name="Collisions" type="Collisions" x="16" y="0">
-    <polyline points="0,0 -16,16"/>
-   </object>
-  </objectgroup>
   <animation>
    <frame tileid="115" duration="250"/>
    <frame tileid="124" duration="250"/>
@@ -177,11 +122,6 @@
   </animation>
  </tile>
  <tile id="146">
-  <objectgroup draworder="index" id="2">
-   <object id="1" name="Collisions" type="Collisions" x="0" y="16">
-    <polyline points="0,0 0,-16"/>
-   </object>
-  </objectgroup>
   <animation>
    <frame tileid="146" duration="250"/>
    <frame tileid="155" duration="250"/>
@@ -197,11 +137,6 @@
   </animation>
  </tile>
  <tile id="150">
-  <objectgroup draworder="index" id="2">
-   <object id="1" name="Collisions" type="Collisions" x="16" y="0">
-    <polyline points="0,0 0,16"/>
-   </object>
-  </objectgroup>
   <animation>
    <frame tileid="150" duration="250"/>
    <frame tileid="159" duration="250"/>
@@ -210,11 +145,6 @@
   </animation>
  </tile>
  <tile id="181">
-  <objectgroup draworder="index" id="2">
-   <object id="1" name="Collisions" type="Collisions" x="0" y="16">
-    <polyline points="0,0 16,-16"/>
-   </object>
-  </objectgroup>
   <animation>
    <frame tileid="181" duration="250"/>
    <frame tileid="190" duration="250"/>
@@ -239,11 +169,6 @@
   </animation>
  </tile>
  <tile id="187">
-  <objectgroup draworder="index" id="2">
-   <object id="1" name="Collisions" type="Collisions" x="0" y="0">
-    <polyline points="0,0 16,16"/>
-   </object>
-  </objectgroup>
   <animation>
    <frame tileid="187" duration="250"/>
    <frame tileid="196" duration="250"/>
@@ -252,11 +177,6 @@
   </animation>
  </tile>
  <tile id="217">
-  <objectgroup draworder="index" id="2">
-   <object id="1" name="Collisions" type="Collisions" x="0" y="16">
-    <polyline points="0,0 0,-16"/>
-   </object>
-  </objectgroup>
   <animation>
    <frame tileid="217" duration="250"/>
    <frame tileid="226" duration="250"/>
@@ -273,11 +193,6 @@
   </animation>
  </tile>
  <tile id="220">
-  <objectgroup draworder="index" id="2">
-   <object id="1" name="Collisions" type="Collisions" x="16" y="16">
-    <polyline points="0,0 -16,0"/>
-   </object>
-  </objectgroup>
   <animation>
    <frame tileid="220" duration="250"/>
    <frame tileid="229" duration="250"/>
@@ -294,11 +209,6 @@
   </animation>
  </tile>
  <tile id="223">
-  <objectgroup draworder="index" id="2">
-   <object id="1" name="Collisions" type="Collisions" x="16" y="0">
-    <polyline points="0,0 0,16"/>
-   </object>
-  </objectgroup>
   <animation>
    <frame tileid="223" duration="250"/>
    <frame tileid="232" duration="250"/>
@@ -307,11 +217,6 @@
   </animation>
  </tile>
  <tile id="253">
-  <objectgroup draworder="index" id="2">
-   <object id="1" name="Collisions" type="Collisions" x="16" y="16">
-    <polyline points="0,0 -16,-16"/>
-   </object>
-  </objectgroup>
   <animation>
    <frame tileid="253" duration="250"/>
    <frame tileid="262" duration="250"/>
@@ -320,11 +225,6 @@
   </animation>
  </tile>
  <tile id="254">
-  <objectgroup draworder="index" id="2">
-   <object id="1" name="Collisions" type="Collisions" x="16" y="16">
-    <polyline points="0,0 -16,0"/>
-   </object>
-  </objectgroup>
   <animation>
    <frame tileid="254" duration="250"/>
    <frame tileid="263" duration="250"/>
@@ -333,11 +233,6 @@
   </animation>
  </tile>
  <tile id="255">
-  <objectgroup draworder="index" id="2">
-   <object id="1" name="Collisions" type="Collisions" x="16" y="0">
-    <polyline points="0,0 -16,16"/>
-   </object>
-  </objectgroup>
   <animation>
    <frame tileid="255" duration="250"/>
    <frame tileid="264" duration="250"/>
@@ -346,11 +241,6 @@
   </animation>
  </tile>
  <tile id="257">
-  <objectgroup draworder="index" id="2">
-   <object id="1" name="Collisions" type="Collisions" x="16" y="16">
-    <polyline points="0,0 -16,-16"/>
-   </object>
-  </objectgroup>
   <animation>
    <frame tileid="257" duration="250"/>
    <frame tileid="266" duration="250"/>
@@ -359,11 +249,6 @@
   </animation>
  </tile>
  <tile id="258">
-  <objectgroup draworder="index" id="2">
-   <object id="1" name="Collisions" type="Collisions" x="16" y="16">
-    <polyline points="0,0 -16,0"/>
-   </object>
-  </objectgroup>
   <animation>
    <frame tileid="258" duration="250"/>
    <frame tileid="267" duration="250"/>
@@ -372,11 +257,6 @@
   </animation>
  </tile>
  <tile id="259">
-  <objectgroup draworder="index" id="2">
-   <object id="1" name="Collisions" type="Collisions" x="16" y="0">
-    <polyline points="0,0 -16,16"/>
-   </object>
-  </objectgroup>
   <animation>
    <frame tileid="259" duration="250"/>
    <frame tileid="268" duration="250"/>

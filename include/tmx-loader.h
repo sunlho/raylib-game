@@ -26,8 +26,8 @@ void DrawTMXTile(tmx_tile *tile, bool onlyDraw, TMXRenderContext *ctx);
 
 LayerRenderTexture *InitMap(const char *mapPath, TMXRenderContext *ctx);
 
-void DrawTMXLayerObjectCallBack(tmx_map *map, tmx_object *obj, double posX, double posY, Color tint);
-void DrawTMXTileCallBack(tmx_tile *tile, TMXRenderContext *ctx);
+void DrawTMXLayerObjectCallBack(tmx_object *obj, TMXRenderContext *ctx);
+bool DrawTMXTileCallBack(tmx_tile *tile, TMXRenderContext *ctx);
 
 #endif // INCLUDE_TMX_LOADER_H
 
@@ -91,7 +91,7 @@ void DrawTMXLayerObjects(tmx_object_group *objgr, TMXRenderContext *ctx) {
     while (head) {
         if (head->visible) {
             if (DrawTMXLayerObjectCallBack) {
-                DrawTMXLayerObjectCallBack(ctx->map, head, ctx->posX, ctx->posY, ctx->tint);
+                DrawTMXLayerObjectCallBack(head, ctx);
             }
             if (head->obj_type == OT_TILE) {
                 tmx_tile *tile = ctx->map->tiles[head->content.gid];
@@ -108,7 +108,10 @@ void DrawTMXLayerObjects(tmx_object_group *objgr, TMXRenderContext *ctx) {
 
 void DrawTMXTile(tmx_tile *tile, bool onlyDraw, TMXRenderContext *ctx) {
     if (DrawTMXTileCallBack && !onlyDraw) {
-        DrawTMXTileCallBack(tile, ctx);
+        bool next = DrawTMXTileCallBack(tile, ctx);
+        if (!next) {
+            return;
+        }
     }
     tmx_image *im = tile->image ? tile->image : tile->tileset->image;
     if (im && im->resource_image) {

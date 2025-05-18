@@ -1,7 +1,7 @@
 #ifndef ECS_PHYSICS_BASIC_H
 #define ECS_PHYSICS_BASIC_H
 
-#include "chipmunk/chipmunk.h"
+#include "box2d/box2d.h"
 #include "context.h"
 #include "flecs.h"
 
@@ -15,10 +15,9 @@ void PhysicsBasicImport(ecs_world_t *world);
 extern ECS_COMPONENT_DECLARE(Position);
 extern ECS_COMPONENT_DECLARE(PlayerData);
 extern ECS_COMPONENT_DECLARE(PlayerPhysics);
-extern ECS_COMPONENT_DECLARE(PhysicsWorld);
 
 void PhysicsStepSystem(const ecs_iter_t *it) {
-    cpSpaceStep(GetSpace(), it->delta_time);
+    b2World_Step(GetPhyWorld(), it->delta_time, 4);
 }
 
 void SyncPositionSystem(ecs_iter_t *it) {
@@ -26,7 +25,7 @@ void SyncPositionSystem(ecs_iter_t *it) {
     PlayerPhysics *pb = ecs_field(it, PlayerPhysics, 2);
 
     for (int i = 0; i < it->count; i++) {
-        cpVect pos = cpBodyGetPosition(pb[i].body);
+        b2Vec2 pos = b2Body_GetPosition(pb[i].body);
         p[i].x = pos.x;
         p[i].y = pos.y;
     }

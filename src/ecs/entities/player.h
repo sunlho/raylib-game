@@ -2,11 +2,8 @@
 #define WCS_PLAYER_ENTITY_H
 
 #include "../components/basic.h"
-#include "../components/physics.h"
 #include "../components/player.h"
-#include "../components/tile-collider.h"
-#include "chipmunk/chipmunk.h"
-#include "chipmunk/chipmunk_private.h"
+#include "box2d/box2d.h"
 #include "constants.h"
 #include "context.h"
 #include "flecs.h"
@@ -15,7 +12,7 @@
 
 void DrawPlayer(ecs_world_t *world);
 ecs_entity_t CreatePlayerEntity(ecs_world_t *world);
-void InitPlayerPosition(ecs_world_t *world, Vector2 position);
+void InitPlayerPosition(ecs_world_t *world, Vector2 position, double scale);
 void FreePlayerEntity(ecs_world_t *world);
 
 #endif // ECS_PLAYER_ENTITY_H
@@ -29,7 +26,6 @@ extern ECS_COMPONENT_DECLARE(Velocity);
 extern ECS_COMPONENT_DECLARE(PlayerData);
 extern ECS_COMPONENT_DECLARE(PlayerSpawn);
 extern ECS_COMPONENT_DECLARE(PlayerPhysics);
-extern ECS_COMPONENT_DECLARE(PhysicsWorld);
 
 static int framesCounter = 0;
 static int framesSpeed = 9;
@@ -60,15 +56,8 @@ void ResetPlayerPosition(ecs_world_t *world) {
     const PlayerSpawn *playerSpawn = ecs_get(world, GetPlayerEntity(), PlayerSpawn);
     const PlayerPhysics *pp = ecs_get(world, GetPlayerEntity(), PlayerPhysics);
     if (playerSpawn != NULL) {
-        cpBodySetPosition(pp->body, cpv(playerSpawn->x, playerSpawn->y));
+        b2Body_SetTransform(pp->body, (b2Vec2){playerSpawn->x, playerSpawn->y}, (b2Rot){0, 0});
     }
-}
-
-void DrawShapeCallback(cpBody *body, cpShape *shape, void *data) {
-    cpCircleShape *circle = (cpCircleShape *)shape;
-    cpVect pos = cpBodyLocalToWorld(body, circle->c);
-    float radius = circle->r;
-    DrawCircle((int)pos.x, (int)pos.y, radius, RED);
 }
 
 void DrawPlayer(ecs_world_t *world) {
@@ -95,9 +84,16 @@ void DrawPlayer(ecs_world_t *world) {
         playerData->frameRect.x = 0.0f;
     }
     ecs_modified(world, GetPlayerEntity(), PlayerData);
-    // const PlayerPhysics *pp = ecs_get(world, GetPlayerEntity(), PlayerPhysics);
-    // cpBodyEachShape(pp->body, DrawShapeCallback, NULL);
+
     DrawTextureRec(playerData->texture, playerData->frameRect, (Vector2){p->x - playerData->width / 2, p->y - playerData->height / 2}, WHITE);
+
+    const PlayerPhysics *pp = ecs_get(world, GetPlayerEntity(), PlayerPhysics);
+    b2ShapeId shapeIds[1];
+    int returnCount = b2Body_GetShapes(pp->body, shapeIds, 1);
+    b2ShapeId shapeId = shapeIds[0];
+    b2Circle c = b2Shape_GetCircle(shapeId);
+    b2Vec2 center = b2Body_GetWorldPoint(pp->body, c.center);
+    DrawCircleLines(center.x, center.y, c.radius, BLUE);
 }
 
 ecs_entity_t CreatePlayerEntity(ecs_world_t *world) {
@@ -127,25 +123,24 @@ ecs_entity_t CreatePlayerEntity(ecs_world_t *world) {
     }
 }
 
-void InitPlayerPosition(ecs_world_t *world, Vector2 position) {
-    position.x *= TILE_SCALE;
-    position.y *= TILE_SCALE;
+void InitPlayerPosition(ecs_world_t *world, Vector2 position, double scale) {
+    position.x *= scale;
+    position.y *= scale;
     ecs_set(world, GetPlayerEntity(), Position, {position.x, position.y});
     const Velocity *v = ecs_get(world, GetPlayerEntity(), Velocity);
-    cpFloat mass = 1.0f;
-    cpFloat radius = 25.0f;
-    cpFloat moment = cpMomentForCircle(mass, 0, radius, cpvzero);
 
-    cpBody *body = cpBodyNew(mass, moment);
-    cpBodySetPosition(body, cpv(position.x, position.y));
-    cpSpaceAddBody(GetSpace(), body);
+    b2BodyDef bodyDef = b2DefaultBodyDef();
+    bodyDef.type = b2_dynamicBody;
+    bodyDef.position = (b2Vec2){position.x, position.y};
 
-    cpShape *shape = cpCircleShapeNew(body, radius, cpvzero);
-    cpShapeSetElasticity(shape, 0.0);
-    cpShapeSetFriction(shape, 1.0);
-    cpSpaceAddShape(GetSpace(), shape);
+    b2Circle circle = {0.0f, 0.0f, 16.0f};
+    b2BodyId body = b2CreateBody(GetPhyWorld(), &bodyDef);
+    b2ShapeDef shapeDef = b2DefaultShapeDef();
+    shapeDef.density = 1.0f;
+    shapeDef.material.friction = 0.3f;
+    b2CreateCircleShape(body, &shapeDef, &circle);
 
-    ecs_set(world, GetPlayerEntity(), PlayerPhysics, {.body = body, .shape = shape});
+    ecs_set(world, GetPlayerEntity(), PlayerPhysics, {.body = body});
     ecs_set(world, GetPlayerEntity(), PlayerSpawn, {position.x, position.y});
 }
 

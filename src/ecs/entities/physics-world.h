@@ -1,10 +1,9 @@
 #ifndef ECS_PHYSICS_WORLD_H
 #define ECS_PHYSICS_WORLD_H
 
-#include "chipmunk/chipmunk.h"
-#include "flecs.h"
+#include "box2d/box2d.h"
 
-cpSpace *InitPhysicsWorld(ecs_world_t *world);
+b2WorldId InitPhysicsWorld(ecs_world_t *world);
 
 #endif // ECS_PHYSICS_WORLD_H
 
@@ -12,17 +11,11 @@ cpSpace *InitPhysicsWorld(ecs_world_t *world);
 #ifndef ECS_PHYSICS_WORLD_IMPLEMENTATION_ONLY
 #define ECS_PHYSICS_WORLD_IMPLEMENTATION_ONLY
 
-extern ECS_COMPONENT_DECLARE(PhysicsWorld);
-
-cpSpace *InitPhysicsWorld(ecs_world_t *world) {
-    cpSpace *space = cpSpaceNew();
-    ecs_singleton_set(world, PhysicsWorld, {.space = space});
-
-    const PhysicsWorld *pw = ecs_singleton_get(world, PhysicsWorld);
-    cpSpaceSetGravity(space, cpv(0, 0));
-    cpSpaceSetCollisionSlop(space, 0.5);
-    ecs_singleton_modified(world, PhysicsWorld);
-    return space;
+b2WorldId InitPhysicsWorld(ecs_world_t *world) {
+    b2WorldDef worldDef = b2DefaultWorldDef();
+    worldDef.gravity = (b2Vec2){0.0f, 0.0f};
+    b2WorldId phyWorld = b2CreateWorld(&worldDef);
+    return phyWorld;
 }
 
 #endif // ECS_PHYSICS_WORLD_IMPLEMENTATION_ONLY
