@@ -1,6 +1,7 @@
 #ifndef ECS_PLAYER_COMPONENT_H
 #define ECS_PLAYER_COMPONENT_H
 
+#include "box2d/box2d.h"
 #include "flecs.h"
 #include "raylib.h"
 
@@ -30,8 +31,7 @@ typedef struct {
 } PlayerData;
 
 typedef struct {
-    cpShape *shape;
-    cpBody *body;
+    b2BodyId body;
 } PlayerPhysics;
 
 #endif // ECS_PLAYER_COMPONENT_H

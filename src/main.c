@@ -1,29 +1,31 @@
+#include "box2d/box2d.h"
 #include "constants.h"
 #include "ecs/components/basic.h"
-#include "ecs/components/physics.h"
 #include "ecs/components/player.h"
 #include "ecs/components/tile-animate.h"
-#include "ecs/components/tile-collider.h"
-#include "ecs/entities/tile-animate.h"
 #include "flecs.h"
 #include "raylib.h"
-#include "tmx-loader.h"
 #include "tmx.h"
 #include "utils.h"
 #include <stdio.h>
 
 #define CONTEXT_IMPLEMENTATION
 #include "context.h"
+#define TMX_LOADER_IMPLEMENTATION
+#include "tmx-loader.h"
+#define ECS_COLLISION_ENTITY_IMPLEMENTATION
+#include "ecs/entities/collision.h"
 #define ECS_PLAYER_ENTITY_IMPLEMENTATION
 #include "ecs/entities/player.h"
 #define ECS_PHYSICS_WORLD_IMPLEMENTATION
 #include "ecs/entities/physics-world.h"
+#define ECS_TILE_ANIMATE_ENTITY_IMPLEMENTATION
+#include "ecs/entities/tile-animate.h"
 #define ECS_COLLISION_SYSTEM_IMPLEMENTATION
 #include "ecs/systems/movement.h"
 #define ECS_PHYSICS_BASIC_IMPLEMENTATION
 #include "ecs/systems/physics-basic.h"
-#define ECS_TILE_ANIMATE_ENTITY_IMPLEMENTATION
-#include "ecs/entities/tile-animate.h"
+
 #define STB_DS_IMPLEMENTATION
 #include "stb_ds.h"
 
@@ -32,9 +34,6 @@ ECS_COMPONENT_DECLARE(Velocity);
 ECS_COMPONENT_DECLARE(PlayerData);
 ECS_COMPONENT_DECLARE(PlayerSpawn);
 ECS_COMPONENT_DECLARE(PlayerPhysics);
-ECS_COMPONENT_DECLARE(TileCollider);
-ECS_COMPONENT_DECLARE(PhysicsBody);
-ECS_COMPONENT_DECLARE(PhysicsWorld);
 ECS_COMPONENT_DECLARE(TileAnimation);
 
 int main(void) {
@@ -49,16 +48,13 @@ int main(void) {
     ECS_COMPONENT_DEFINE(world, PlayerData);
     ECS_COMPONENT_DEFINE(world, PlayerSpawn);
     ECS_COMPONENT_DEFINE(world, PlayerPhysics);
-    ECS_COMPONENT_DEFINE(world, TileCollider);
-    ECS_COMPONENT_DEFINE(world, PhysicsBody);
-    ECS_COMPONENT_DEFINE(world, PhysicsWorld);
     ECS_COMPONENT_DEFINE(world, TileAnimation);
 
     ecs_singleton_set(world, EcsRest, {0});
     SetWorld(world);
 
-    cpSpace *space = InitPhysicsWorld(world);
-    SetSpace(space);
+    b2WorldId phyWorld = InitPhysicsWorld(world);
+    SetPhyWorld(phyWorld);
     ECS_IMPORT(world, PhysicsBasic);
 
     ecs_entity_t player = CreatePlayerEntity(world);
@@ -77,19 +73,19 @@ int main(void) {
         BeginDrawing();
         ClearBackground(BLACK);
 
-        // while (mapTexture->next) {
         DrawRenderTextureFixed(mapTexture->texture, 0, 0, 1, WHITE);
-        //     mapTexture = mapTexture->next;
-        // }
         if (!mapTexture->next)
             mapTexture = mapTextureHead;
         DrawAnimatedTiles(&ctx);
+        DrawRenderTextureFixed(mapTexture->next->texture, 0, 0, 1, WHITE);
+        DrawRenderTextureFixed(mapTexture->next->next->texture, 0, 0, 1, WHITE);
 
         DrawPlayer(world);
 
         EndDrawing();
     }
 
+    b2DestroyWorld(phyWorld);
     FreePlayerEntity(world);
     ecs_fini(world);
     CloseWindow();

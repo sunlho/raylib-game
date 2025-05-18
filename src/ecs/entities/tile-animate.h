@@ -80,6 +80,7 @@ void CreateTileAnimationEntity(ecs_world_t *world, tmx_tile *tile, double posX, 
             {
                 .tile = tile,
                 .currentFrame = 0,
+                .instances = instance,
             });
         hmput(tile_animate_map, tile->id, entity);
         ecs_entity_t group = GetTileAnimationEntityGroup();

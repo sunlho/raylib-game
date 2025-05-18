@@ -2,16 +2,16 @@
 #define ECS_COLLISION_ENTITY_H
 
 #include "../components/basic.h"
-#include "../components/tile-collider.h"
+#include "box2d/box2d.h"
 #include "constants.h"
 #include "context.h"
 #include "flecs.h"
 #include "raylib.h"
 #include "raymath.h"
 
-void PolylineCollisionEntity(ecs_world_t *world, tmx_object *collision, double posX, double posY, int tileId, double scale);
 ecs_entity_t GetCollisionEntityGroup();
 void DrawCollisionRectangle();
+void PolygonCollisionEntity(ecs_world_t *world, tmx_object *collision, double posX, double posY, double scale);
 
 #endif // ECS_COLLISION_ENTITY_H
 
@@ -21,8 +21,6 @@ void DrawCollisionRectangle();
 
 extern ECS_COMPONENT_DECLARE(Position);
 extern ECS_COMPONENT_DECLARE(Velocity);
-extern ECS_COMPONENT_DECLARE(TileCollider);
-extern ECS_COMPONENT_DECLARE(PhysicsWorld);
 
 ecs_entity_t GetCollisionEntityGroup() {
     ecs_entity_t group = ecs_lookup(GetWorld(), TILE_COLLIDER_GROUP);
@@ -32,45 +30,30 @@ ecs_entity_t GetCollisionEntityGroup() {
     return group;
 }
 
-void PolylineCollisionEntity(ecs_world_t *world, tmx_object *collision, double posX, double posY, int tileId, double scale) {
-    tmx_shape *shape = collision->content.shape;
-    if (shape->points_len == 1)
-        return;
-    ecs_entity_t group = GetCollisionEntityGroup();
-    cpBody *staticBody = cpSpaceGetStaticBody(GetSpace());
-    cpVect offset = cpvmult(cpv(collision->x, collision->y), scale);
-    cpVect position = cpvadd(cpv(posX, posY), offset);
-    for (int i = 0; i < shape->points_len - 1; i++) {
-        cpVect p1 = cpvadd(cpvmult(cpv(shape->points[i][0], shape->points[i][1]), scale), position);
-        cpVect p2 = cpvadd(cpvmult(cpv(shape->points[i + 1][0], shape->points[i + 1][1]), scale), position);
-
-        cpShape *wall = cpSegmentShapeNew(staticBody, p1, p2, 2.0);
-        cpShapeSetFriction(wall, 1.0);
-        cpShapeSetElasticity(wall, 0.0);
-        cpSpaceAddShape(GetSpace(), wall);
-
-        ecs_entity_t collider = ecs_new(world);
-        ecs_set(world, collider, TileCollider, {.tileId = tileId, .a = {p1.x, p1.y}, .b = {p2.x, p2.y}, .shape = wall});
-        if (group) {
-            ecs_add_pair(world, collider, EcsChildOf, group);
-        }
+void PolygonCollisionEntity(ecs_world_t *world, tmx_object *obj, double posX, double posY, double scale) {
+    int len = obj->content.shape->points_len;
+    b2Vec2 *points = (b2Vec2 *)malloc(sizeof(b2Vec2) * len);
+    for (int i = 0; i < len; i++) {
+        points[i] = (b2Vec2){(obj->content.shape->points[len - i - 1][0] * scale) + posX, (obj->content.shape->points[len - i - 1][1] * scale) + posY};
     }
-}
-
-void DrawCollisionRectangle() {
-    ecs_iter_t it = ecs_children(GetWorld(), GetCollisionEntityGroup());
-    while (ecs_children_next(&it)) {
-        for (int i = 0; i < it.count; i++) {
-            ecs_entity_t child = it.entities[i];
-            const TileCollider *tc = ecs_get(GetWorld(), child, TileCollider);
-            cpVect a = cpSegmentShapeGetA(tc->shape);
-            cpVect b = cpSegmentShapeGetB(tc->shape);
-
-            if (tc) {
-                DrawLineEx((Vector2){a.x, a.y}, (Vector2){b.x, b.y}, 1, RED);
-            }
-        }
+    for (size_t i = 0; i < len; i++) {
+        DrawLineEx(
+            (Vector2){points[i].x, points[i].y},
+            (Vector2){
+                points[(i + 1) % len].x,
+                points[(i + 1) % len].y,
+            },
+            1,
+            RED);
     }
+
+    b2BodyDef bodyDef = b2DefaultBodyDef();
+    b2BodyId bodyId = b2CreateBody(GetPhyWorld(), &bodyDef);
+    b2ChainDef chainDef = b2DefaultChainDef();
+    chainDef.points = points;
+    chainDef.count = obj->content.shape->points_len;
+    chainDef.isLoop = true;
+    b2ChainId myChainId = b2CreateChain(bodyId, &chainDef);
 }
 
 #endif // ECS_COLLISION_ENTITY_IMPLEMENTATION_ONLY
