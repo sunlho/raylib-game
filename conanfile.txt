@@ -1,4 +1,6 @@
+
 [requires]
+stb/cci.20240531
 raylib/5.5
 tmx/1.10.0
 flecs/4.0.4
