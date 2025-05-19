@@ -82,9 +82,11 @@ int main(void) {
             mapTexture = mapTextureHead;
         DrawAnimatedTiles(&ctx);
         DrawRenderTextureFixed(mapTexture->next->texture, 0, 0, 1, WHITE);
-        DrawRenderTextureFixed(mapTexture->next->next->texture, 0, 0, 1, WHITE);
-
         DrawPlayer(world);
+        DrawRenderTextureFixed(mapTexture->next->next->texture, 0, 0, 1, WHITE);
+        DrawRenderTextureFixed(mapTexture->next->next->next->texture, 0, 0, 1, WHITE);
+        DrawRenderTextureFixed(mapTexture->next->next->next->next->texture, 0, 0, 1, WHITE);
+
         EndMode2D();
 
         EndDrawing();

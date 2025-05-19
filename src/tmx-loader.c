@@ -26,17 +26,17 @@ void DrawTMXLayerObjectCallBack(tmx_object *obj, TMXRenderContext *ctx) {
 }
 
 bool DrawTMXTileCallBack(tmx_tile *tile, TMXRenderContext *ctx) {
-    // if (tile->collision) {
-    //     tmx_object *collision = tile->collision;
-    //     while (collision) {
-    //         switch (collision->obj_type) {
-    //         case OT_POLYLINE:
-    //             PolylineCollisionEntity(GetWorld(), collision, ctx->posX, ctx->posY, tile->id);
-    //             break;
-    //         }
-    //         collision = collision->next;
-    //     }
-    // }
+    if (tile->collision) {
+        tmx_object *collision = tile->collision;
+        while (collision) {
+            switch (collision->obj_type) {
+            case OT_POLYGON:
+                PolygonCollisionEntity(GetWorld(), collision, ctx->posX + collision->x, ctx->posY + collision->y);
+                break;
+            }
+            collision = collision->next;
+        }
+    }
     if (tile->animation) {
         CreateTileAnimationEntity(GetWorld(), tile, ctx->posX, ctx->posY);
     }

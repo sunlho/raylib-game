@@ -30,10 +30,21 @@ ecs_entity_t GetCollisionEntityGroup() {
 }
 
 void PolygonCollisionEntity(ecs_world_t *world, tmx_object *obj, double posX, double posY) {
-    int len = obj->content.shape->points_len;
+    bool internalCollision = tmx_get_property(obj->properties, "internal-collision") != NULL;
+    tmx_shape *shape = obj->content.shape;
+    int len = shape->points_len;
+
     b2Vec2 *points = (b2Vec2 *)malloc(sizeof(b2Vec2) * len);
     for (int i = 0; i < len; i++) {
-        points[i] = (b2Vec2){obj->content.shape->points[len - i - 1][0] + posX, obj->content.shape->points[len - i - 1][1] + posY};
+        points[i] = (b2Vec2){shape->points[i][0] + posX, shape->points[i][1] + posY};
+    }
+
+    if (internalCollision) {
+        for (int i = 0; i < len / 2; i++) {
+            b2Vec2 temp = points[i];
+            points[i] = points[len - i - 1];
+            points[len - i - 1] = temp;
+        }
     }
     // for (size_t i = 0; i < len; i++) {
     //     DrawLineEx(

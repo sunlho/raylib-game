@@ -264,4 +264,32 @@
    <frame tileid="286" duration="250"/>
   </animation>
  </tile>
+ <tile id="584">
+  <objectgroup draworder="index" id="2">
+   <object id="1" type="Collision" x="0" y="0">
+    <polygon points="2,8 12,8 12,13 11,14 3,14 2,13"/>
+   </object>
+  </objectgroup>
+ </tile>
+ <tile id="799">
+  <objectgroup draworder="index" id="2">
+   <object id="4" x="14" y="0">
+    <polygon points="0,5 2,5 2,13 1,13 0,12"/>
+   </object>
+  </objectgroup>
+ </tile>
+ <tile id="800">
+  <objectgroup draworder="index" id="2">
+   <object id="2" x="7" y="0">
+    <polygon points="0,5 1,5 2,8 2,11 1,12 -1,13 -7,13 -7,5"/>
+   </object>
+  </objectgroup>
+ </tile>
+ <tile id="804">
+  <objectgroup draworder="index" id="2">
+   <object id="3" x="1" y="0">
+    <polygon points="0,0 14,0 14,5 11,8 2,8 1,7 0,5"/>
+   </object>
+  </objectgroup>
+ </tile>
 </tileset>

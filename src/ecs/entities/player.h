@@ -56,7 +56,7 @@ void ResetPlayerPosition(ecs_world_t *world) {
     const PlayerSpawn *playerSpawn = ecs_get(world, GetPlayerEntity(), PlayerSpawn);
     const PlayerPhysics *pp = ecs_get(world, GetPlayerEntity(), PlayerPhysics);
     if (playerSpawn != NULL) {
-        b2Body_SetTransform(pp->body, (b2Vec2){playerSpawn->x, playerSpawn->y}, (b2Rot){0, 0});
+        b2Body_SetTransform(pp->body, (b2Vec2){playerSpawn->x, playerSpawn->y}, (b2Rot){1.0f, 0.0f});
     }
 }
 
