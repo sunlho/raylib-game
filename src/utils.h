@@ -65,11 +65,11 @@ static inline Vector2 GetMovementInput(float speed) {
     return dir;
 }
 
-static inline void DrawRenderTextureFixed(RenderTexture2D target, int posX, int posY, float scale, Color tint) {
+static inline void DrawRenderTextureFixed(RenderTexture2D target, int pos_x, int pos_y, float scale, Color tint) {
     DrawTexturePro(
         target.texture,
         (Rectangle){0, 0, (float)target.texture.width, -(float)target.texture.height},
-        (Rectangle){(float)posX * scale, (float)posY * scale, (float)target.texture.width * scale, (float)target.texture.height * scale},
+        (Rectangle){(float)pos_x * scale, (float)pos_y * scale, (float)target.texture.width * scale, (float)target.texture.height * scale},
         (Vector2){0, 0},
         0.0f,
         tint);

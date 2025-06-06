@@ -402,3 +402,7 @@ Makefile
 
 build/
 CMakeUserPresets.json
+
+The Fan-tasy Tileset (Free)/
+assets/Refer/
+!assets/Build/

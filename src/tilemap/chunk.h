@@ -1,0 +1,107 @@
+#ifndef TILEMAP_CHUNK_H
+#define TILEMAP_CHUNK_H
+
+#include "flecs.h"
+#include "raylib.h"
+#include "tmx.h"
+
+#include "types/chunk.h"
+#include "types/render.h"
+#include "types/types.h"
+
+#include "utils.h"
+#include "viewport.h"
+
+ecs_entity_t TilemapCreateChunkEntity(TilemapChunk *chunk_data, float sort_y, bool is_object);
+
+#endif // TILEMAP_CHUNK_H
+
+#ifdef TILEMAP_CHUNK_IMPLEMENTATION
+#ifndef TILEMAP_CHUNK_IMPLEMENTATION_ONCE
+#define TILEMAP_CHUNK_IMPLEMENTATION_ONCE
+
+static TilemapChunkHashMap *tilemap_chunk_map = NULL;
+
+static TilemapObject *tilemap_object_list = NULL;
+
+extern ECS_COMPONENT_DECLARE(TilemapChunk);
+extern ECS_COMPONENT_DECLARE(TilemapDrawable);
+
+static void TilemapChunkRender(ecs_world_t *world, ecs_entity_t entity) {
+    const TilemapChunk *chunk_data = ecs_get(world, entity, TilemapChunk);
+    if (chunk_data && chunk_data->tiles) {
+        TilemapChunkTile *chunk_tile = chunk_data->tiles;
+        while (chunk_tile) {
+            tmx_image *im = chunk_tile->tile->image ? chunk_tile->tile->image : chunk_tile->tile->tileset->image;
+            if (im && im->resource_image) {
+                Texture *image = (Texture *)im->resource_image;
+                if (image) {
+                    DrawTexturePro(*image, chunk_tile->src_rect, chunk_tile->dest_rect, (Vector2){0, 0}, 0, WHITE);
+                }
+            };
+            chunk_tile = chunk_tile->next;
+        }
+        if (*tilemap_debug_mode) {
+            DrawRectangleLinesEx(chunk_data->dest_rect, 1, RED);
+            DrawText(
+                TextFormat("Chunk: %d, %d", chunk_data->chunk_x, chunk_data->chunk_y),
+                chunk_data->dest_rect.x + 5,
+                chunk_data->dest_rect.y + 5,
+                10,
+                RED);
+        }
+    }
+}
+
+static ecs_entity_t TilemapGetChunkEntityLayer(int index) {
+    char layer_name[32];
+    snprintf(layer_name, sizeof(layer_name), "TilemapChunkLayer_%d", index);
+    ecs_entity_t layer_group = ecs_lookup(tilemap_ecs_world, layer_name);
+    if (!layer_group || !ecs_is_valid(tilemap_ecs_world, layer_group)) {
+        layer_group = ecs_entity(tilemap_ecs_world, {.name = layer_name});
+    }
+    return layer_group;
+}
+
+ecs_entity_t TilemapCreateChunkEntity(TilemapChunk *chunk_data, float sort_y, bool is_object) {
+
+    ecs_entity_t chunk = ecs_new(tilemap_ecs_world);
+
+    ecs_set_id(tilemap_ecs_world, chunk, ecs_id(TilemapChunk), sizeof(TilemapChunk), chunk_data);
+    ecs_set(tilemap_ecs_world, chunk, TilemapDrawable, {.sort_y = sort_y, .layer_index = (float)chunk_data->layer_index, .render_fn = TilemapChunkRender});
+
+    ecs_entity_t layer_group = TilemapGetChunkEntityLayer(chunk_data->layer_index);
+    ecs_add_pair(tilemap_ecs_world, chunk, EcsChildOf, layer_group);
+
+    if (!is_object) {
+        uint64_t key = MortonEncode(chunk_data->chunk_x, chunk_data->chunk_y);
+        TilemapChunkHashMap *hash_entity = hmgetp_null(tilemap_chunk_map, key);
+        if (!hash_entity) {
+            TilemapChunkHashEntity *value = malloc(sizeof(TilemapChunkHashEntity));
+            value->entity = chunk;
+            value->next = NULL;
+            hmput(tilemap_chunk_map, key, value);
+        } else {
+            TilemapChunkHashEntity *value = malloc(sizeof(TilemapChunkHashEntity));
+            if (value) {
+                value->entity = chunk;
+                value->next = NULL;
+                value->next = hash_entity->value;
+                hash_entity->value = value;
+            }
+        }
+    } else {
+        TilemapObject *object = malloc(sizeof(TilemapObject));
+        if (object) {
+            object->entity = chunk;
+            object->dest_rect = chunk_data->dest_rect;
+            object->next = tilemap_object_list;
+            tilemap_object_list = object;
+        }
+    }
+
+    return chunk;
+}
+
+#endif // TILEMAP_CHUNK_IMPLEMENTATION_ONCE
+#endif // TILEMAP_CHUNK_IMPLEMENTATION

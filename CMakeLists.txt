@@ -12,7 +12,7 @@ find_package(raylib REQUIRED)
 find_package(tmx REQUIRED)
 find_package(flecs REQUIRED)
 
-add_executable(${PROJECT_NAME} src/main.c src/tmx-loader.c)
+add_executable(${PROJECT_NAME} src/main.c)
 target_include_directories(${PROJECT_NAME} PRIVATE include src)
 
 target_link_libraries(${PROJECT_NAME} PRIVATE stb::stb raylib tmx flecs::flecs_static box2d::box2d)
