@@ -38,12 +38,10 @@ int main(void) {
     SetConfigFlags(FLAG_VSYNC_HINT);
     InitWindow(SCREEN_WIDTH, SCREEN_HEIGHT, "[raylib-tmx] example");
 
-    SetConfigFlags(FLAG_VSYNC_HINT);
-
     bool debug_mode = false;
 
     Camera2D camera = {0};
-    camera.zoom = 1.0f;
+    camera.zoom = 2.0f;
     camera.offset = (Vector2){SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2};
     SetCamera(&camera);
 
@@ -64,7 +62,7 @@ int main(void) {
     b2WorldId phy_world = InitPhysicsWorld(world);
     SetPhyWorld(phy_world);
 
-    TilemapWorldSize world_size = Tilemap(
+    TilemapInstance tilemap = Tilemap(
         GetAssetPath("Map.tmx"),
         {
             .world = world,
@@ -73,7 +71,7 @@ int main(void) {
             .debug_mode = &debug_mode,
             .camera = &camera,
         });
-    SetWorldSize(world_size.width, world_size.height);
+    SetWorldSize(tilemap.size.width, tilemap.size.height);
 
     ECS_IMPORT(world, PhysicsBasic);
 
@@ -85,7 +83,7 @@ int main(void) {
 
     b2BodyId player_body = InitPlayerSpawn(world, (Vector2){1000, 1500});
 
-    RenderTexture2D target = LoadRenderTexture(SCREEN_WIDTH, SCREEN_HEIGHT);
+    TilemapRegisterRenderSystem();
 
     while (!WindowShouldClose() && !ecs_should_quit(world)) {
         if (IsKeyPressed(KEY_R)) {
@@ -121,12 +119,14 @@ int main(void) {
         }
         Vector2 move = GetMovementInput(PLAYER_MOVE_SPEED);
         b2Body_SetLinearVelocity(player_body, (b2Vec2){move.x, move.y});
+        ecs_progress(world, GetFrameTime());
 
         BeginDrawing();
-        ClearBackground(RAYWHITE);
-
         BeginMode2D(camera);
-        ecs_progress(world, GetFrameTime());
+        ClearBackground(BLANK);
+
+        tilemap.render();
+
         if (debug_mode) {
             b2World_Draw(phy_world, &debug_draw);
         }

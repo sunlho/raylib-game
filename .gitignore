@@ -401,8 +401,7 @@ Makefile
 .vscode/
 
 build/
+!assets/Build/
+
 CMakeUserPresets.json
 
-The Fan-tasy Tileset (Free)/
-assets/Refer/
-!assets/Build/

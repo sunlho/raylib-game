@@ -27,28 +27,84 @@ static TilemapObject *tilemap_object_list = NULL;
 extern ECS_COMPONENT_DECLARE(TilemapChunk);
 extern ECS_COMPONENT_DECLARE(TilemapDrawable);
 
-static void TilemapChunkRender(ecs_world_t *world, ecs_entity_t entity) {
-    const TilemapChunk *chunk_data = ecs_get(world, entity, TilemapChunk);
-    if (chunk_data && chunk_data->tiles) {
-        TilemapChunkTile *chunk_tile = chunk_data->tiles;
+static void TilemapChunkDraw(TilemapChunkTile *chunk_tile) {
+    if (chunk_tile) {
         while (chunk_tile) {
-            tmx_image *im = chunk_tile->tile->image ? chunk_tile->tile->image : chunk_tile->tile->tileset->image;
+            tmx_tile *tile = tilemap_tmx_map->tiles[chunk_tile->tile_gid];
+            if (!tile) {
+                chunk_tile = chunk_tile->next;
+                continue;
+            }
+            tmx_image *im = tile->image ? tile->image : tile->tileset->image;
             if (im && im->resource_image) {
                 Texture *image = (Texture *)im->resource_image;
                 if (image) {
                     DrawTexturePro(*image, chunk_tile->src_rect, chunk_tile->dest_rect, (Vector2){0, 0}, 0, WHITE);
                 }
-            };
+            }
             chunk_tile = chunk_tile->next;
         }
+    }
+}
+
+// Why would this approach actually result in worse performance?
+static void TilemapChunkCacheRender(ecs_world_t *world, ecs_entity_t entity) {
+    TilemapChunk *chunk_data = ecs_get_mut(world, entity, TilemapChunk);
+    if (chunk_data && chunk_data->tiles) {
+        if (!chunk_data->initialized && chunk_data->texture.id != 0) {
+            chunk_data->initialized = true;
+            if (chunk_data->texture.id == 0) {
+                chunk_data->texture = LoadRenderTexture(chunk_data->dest_rect.width, chunk_data->dest_rect.height);
+            }
+            BeginTextureMode(chunk_data->texture);
+            ClearBackground(BLANK);
+            TilemapChunkDraw(chunk_data->tiles);
+            EndTextureMode();
+        }
+
+        if (chunk_data->is_dirty && chunk_data->texture.id != 0) {
+            chunk_data->is_dirty = false;
+            BeginTextureMode(chunk_data->texture);
+            ClearBackground(BLANK);
+            TilemapChunkDraw(chunk_data->tiles);
+            EndTextureMode();
+        }
+
+        if (chunk_data->texture.id != 0) {
+            DrawTexturePro(
+                chunk_data->texture.texture,
+                (Rectangle){0, 0, chunk_data->dest_rect.width, -chunk_data->dest_rect.height},
+                chunk_data->dest_rect,
+                (Vector2){0, 0},
+                0,
+                WHITE);
+        }
+
         if (*tilemap_debug_mode) {
-            DrawRectangleLinesEx(chunk_data->dest_rect, 1, RED);
+            DrawRectangleLinesEx(chunk_data->dest_rect, 1, BLUE);
             DrawText(
-                TextFormat("Chunk: %d, %d", chunk_data->chunk_x, chunk_data->chunk_y),
+                TextFormat("(%d,%d)", chunk_data->chunk_x, chunk_data->chunk_y),
                 chunk_data->dest_rect.x + 5,
                 chunk_data->dest_rect.y + 5,
                 10,
-                RED);
+                BLUE);
+        }
+    }
+}
+
+static void TilemapChunkRender(ecs_world_t *world, ecs_entity_t entity) {
+    const TilemapChunk *chunk_data = ecs_get(world, entity, TilemapChunk);
+    if (chunk_data && chunk_data->tiles) {
+        TilemapChunkDraw(chunk_data->tiles);
+
+        if (*tilemap_debug_mode) {
+            DrawRectangleLinesEx(chunk_data->dest_rect, 1, BLUE);
+            DrawText(
+                TextFormat("(%d,%d)", chunk_data->chunk_x, chunk_data->chunk_y),
+                chunk_data->dest_rect.x + 5,
+                chunk_data->dest_rect.y + 5,
+                10,
+                BLUE);
         }
     }
 }
@@ -77,12 +133,12 @@ ecs_entity_t TilemapCreateChunkEntity(TilemapChunk *chunk_data, float sort_y, bo
         uint64_t key = MortonEncode(chunk_data->chunk_x, chunk_data->chunk_y);
         TilemapChunkHashMap *hash_entity = hmgetp_null(tilemap_chunk_map, key);
         if (!hash_entity) {
-            TilemapChunkHashEntity *value = malloc(sizeof(TilemapChunkHashEntity));
+            TilemapChunkHashEntity *value = MemAlloc(sizeof(TilemapChunkHashEntity));
             value->entity = chunk;
             value->next = NULL;
             hmput(tilemap_chunk_map, key, value);
         } else {
-            TilemapChunkHashEntity *value = malloc(sizeof(TilemapChunkHashEntity));
+            TilemapChunkHashEntity *value = MemAlloc(sizeof(TilemapChunkHashEntity));
             if (value) {
                 value->entity = chunk;
                 value->next = NULL;
@@ -91,7 +147,7 @@ ecs_entity_t TilemapCreateChunkEntity(TilemapChunk *chunk_data, float sort_y, bo
             }
         }
     } else {
-        TilemapObject *object = malloc(sizeof(TilemapObject));
+        TilemapObject *object = MemAlloc(sizeof(TilemapObject));
         if (object) {
             object->entity = chunk;
             object->dest_rect = chunk_data->dest_rect;

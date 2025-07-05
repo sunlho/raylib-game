@@ -20,9 +20,6 @@ void TilemapHandleMap(tmx_map *map);
 #define TILEMAP_CHUNK_IMPLEMENTATION
 #include "chunk.h"
 
-#define TILEMAP_ANIMATE_IMPLEMENTATION
-#include "animate.h"
-
 ECS_COMPONENT_DECLARE(TilemapChunk);
 ECS_COMPONENT_DECLARE(TilemapDrawable);
 extern ECS_COMPONENT_DECLARE(Rectangle);
@@ -63,33 +60,42 @@ static void TilemapHandleLayerTiles(tmx_layer *layer, TilemapCtx *ctx) {
     for (int by = 0; by < CeilDivSafe(height, CHUNK_SIZE); by++) {
         for (int bx = 0; bx < CeilDivSafe(width, CHUNK_SIZE); bx++) {
             TilemapChunkTile *tiles = NULL;
+            TilemapChunkAnimTile *anim_tiles = NULL;
             int tiles_in_chunk_x = ECS_MIN(CHUNK_SIZE, width - bx * CHUNK_SIZE);
             int tiles_in_chunk_y = ECS_MIN(CHUNK_SIZE, height - by * CHUNK_SIZE);
             for (int y = 0; y < tiles_in_chunk_y; y++) {
                 for (int x = 0; x < tiles_in_chunk_x; x++) {
                     unsigned int index = (by * CHUNK_SIZE + y) * width + (bx * CHUNK_SIZE + x);
-                    unsigned int base_gid = layer->content.gids[index];
-                    unsigned int gid = base_gid & TMX_FLIP_BITS_REMOVAL;
-                    if (ctx->map->tiles[gid]) {
-                        tmx_tile *tile = ctx->map->tiles[gid];
-
+                    unsigned int gid = layer->content.gids[index] & TMX_FLIP_BITS_REMOVAL;
+                    tmx_tile *tile = ctx->map->tiles[gid];
+                    if (tile) {
                         double pos_x = ctx->pos_x + (bx * CHUNK_SIZE + x) * tile->width;
                         double pos_y = ctx->pos_y + (by * CHUNK_SIZE + y) * tile->height;
+
                         Rectangle src_rect = {tile->ul_x, tile->ul_y, tile->width, tile->height};
                         Rectangle dest_rect = {pos_x, pos_y, tile->width, tile->height};
 
-                        TilemapChunkTile *chunk_tile = malloc(sizeof(TilemapChunkTile));
+                        TilemapChunkTile *chunk_tile = MemAlloc(sizeof(TilemapChunkTile));
 
                         if (chunk_tile) {
-                            chunk_tile->tile = tile;
-                            chunk_tile->pos_x = pos_x;
-                            chunk_tile->pos_y = pos_y;
+                            chunk_tile->tile_gid = gid;
                             chunk_tile->src_rect = src_rect;
                             chunk_tile->dest_rect = dest_rect;
                             chunk_tile->next = tiles;
                             tiles = chunk_tile;
                         }
-                        TilemapHandleTileCollision(ctx->map->tiles[gid], pos_x, pos_y);
+                        if (tile->animation_len > 0 && tile->animation) {
+                            TilemapChunkAnimTile *anim_tile = MemAlloc(sizeof(TilemapChunkAnimTile));
+                            if (anim_tile) {
+                                anim_tile->tile = chunk_tile;
+                                anim_tile->current_frame = 0;
+                                anim_tile->animation_len = tile->animation_len;
+                                anim_tile->animation = tile->animation;
+                                anim_tile->next = anim_tiles;
+                                anim_tiles = anim_tile;
+                            }
+                        }
+                        TilemapHandleTileCollision(tile, pos_x, pos_y);
                     }
                 }
             }
@@ -108,6 +114,7 @@ static void TilemapHandleLayerTiles(tmx_layer *layer, TilemapCtx *ctx) {
                 },
                 .layer_index = ctx->layer_index,
                 .tiles = tiles,
+                .anim_tiles = anim_tiles,
             };
             int sort_y = GetLayerSortY(ctx->layer_index, tile_offset_y + CHUNK_SIZE * ctx->map->tile_height);
             ecs_entity_t chunk = TilemapCreateChunkEntity(&chunk_data, sort_y, false);
@@ -124,25 +131,22 @@ static void TilemapHandleLayerObjectGroup(tmx_object_group *object_group, Tilema
             }
 
             if (head->obj_type == OT_TILE) {
-
                 tmx_tile *tile = ctx->map->tiles[head->content.gid];
-                if (tile != NULL) {
+                if (tile) {
                     double pos_x = ctx->pos_x + head->x;
                     double pos_y = ctx->pos_y + head->y - tile->height;
                     Rectangle src_rect = {tile->ul_x, tile->ul_y, tile->width, tile->height};
                     Rectangle dest_rect = {pos_x, pos_y, tile->width, tile->height};
+                    Rectangle dest_rect2 = {0, 0, tile->width, tile->height};
 
-                    TilemapChunkTile *chunk_tile = malloc(sizeof(TilemapChunkTile));
+                    TilemapChunkTile *chunk_tile = MemAlloc(sizeof(TilemapChunkTile));
 
                     if (chunk_tile) {
-                        chunk_tile->tile = tile;
-                        chunk_tile->pos_x = pos_x;
-                        chunk_tile->pos_y = pos_y;
+                        chunk_tile->tile_gid = head->content.gid;
                         chunk_tile->src_rect = src_rect;
                         chunk_tile->dest_rect = dest_rect;
                         chunk_tile->next = NULL;
                     }
-                    TilemapHandleTileCollision(tile, pos_x, pos_y);
                     int chunk_x = (int)floor(pos_x / (CHUNK_SIZE * ctx->map->tile_width));
                     int chunk_y = (int)floor(pos_y / (CHUNK_SIZE * ctx->map->tile_height));
 
@@ -155,6 +159,7 @@ static void TilemapHandleLayerObjectGroup(tmx_object_group *object_group, Tilema
                     };
                     int sort_y = GetLayerSortY(ctx->layer_index, pos_y + tile->height);
                     ecs_entity_t chunk = TilemapCreateChunkEntity(&chunk_data, sort_y, true);
+                    TilemapHandleTileCollision(tile, pos_x, pos_y);
                 }
             }
             head = head->next;
@@ -170,10 +175,11 @@ void TilemapHandleMap(tmx_map *map) {
         {
             .entity = ecs_id(TilemapChunkTile),
             .members = {
-                {.name = "pos_x", .type = ecs_id(ecs_f32_t)},
-                {.name = "pos_y", .type = ecs_id(ecs_f32_t)},
+
+                {.name = "tile_gid", .type = ecs_id(ecs_u32_t)},
                 {.name = "src_rect", .type = ecs_id(Rectangle)},
                 {.name = "dest_rect", .type = ecs_id(Rectangle)},
+                {.name = "next", .type = ecs_id(ecs_iptr_t)},
             },
         });
 
@@ -188,7 +194,7 @@ void TilemapHandleMap(tmx_map *map) {
                 {.name = "chunk_y", .type = ecs_id(ecs_i32_t)},
                 {.name = "dest_rect", .type = ecs_id(Rectangle)},
                 {.name = "layer_index", .type = ecs_id(ecs_i32_t)},
-                {.name = "tiles", .type = ecs_id(TilemapChunkTile)},
+                {.name = "tiles", .type = ecs_id(ecs_iptr_t)},
             },
         });
     ECS_COMPONENT_DEFINE(tilemap_ecs_world, TilemapDrawable);
@@ -200,6 +206,7 @@ void TilemapHandleMap(tmx_map *map) {
                 {.name = "sort_y", .type = ecs_id(ecs_f32_t)},
                 {.name = "layer_index", .type = ecs_id(ecs_f32_t)},
                 {.name = "is_dynamic", .type = ecs_id(ecs_bool_t)},
+                {.name = "render_fn", .type = ecs_id(ecs_iptr_t)},
             },
         });
 

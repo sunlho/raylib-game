@@ -63,7 +63,7 @@ b2BodyId InitPlayerSpawn(ecs_world_t *world, Vector2 position) {
     bodyDef.type = b2_dynamicBody;
     bodyDef.position = (b2Vec2){position.x, position.y};
 
-    b2Circle circle = {0.0f, 0.0f, 30.0f};
+    b2Circle circle = {0.0f, 0.0f, 10.0f};
     b2BodyId body = b2CreateBody(GetPhyWorld(), &bodyDef);
     b2ShapeDef shapeDef = b2DefaultShapeDef();
     shapeDef.density = 1.0f;

@@ -13,9 +13,13 @@ b2WorldId InitPhysicsWorld(ecs_world_t *world);
 #define ECS_PHYSICS_WORLD_IMPLEMENTATION_ONLY
 
 void B2HexColorToRaylibColor(b2HexColor color, Color *c) {
-    c->r = (color >> 16) & 0xFF;
-    c->g = (color >> 8) & 0xFF;
-    c->b = color & 0xFF;
+    // c->r = (color >> 16) & 0xFF;
+    // c->g = (color >> 8) & 0xFF;
+    // c->b = color & 0xFF;
+    // c->a = 255;
+    c->r = 0;
+    c->g = 0;
+    c->b = 255;
     c->a = 255;
 }
 
@@ -29,7 +33,7 @@ void b2DrawPolygon(const b2Vec2 *vertices, int vertexCount, b2HexColor color, vo
                 vertices[(i + 1) % vertexCount].x,
                 vertices[(i + 1) % vertexCount].y,
             },
-            2,
+            1,
             c);
     }
 }
@@ -37,7 +41,7 @@ void b2DrawPolygon(const b2Vec2 *vertices, int vertexCount, b2HexColor color, vo
 void b2DrawSegment(b2Vec2 p1, b2Vec2 p2, b2HexColor color, void *context) {
     Color c;
     B2HexColorToRaylibColor(color, &c);
-    DrawLineEx((Vector2){p1.x, p1.y}, (Vector2){p2.x, p2.y}, 2, c);
+    DrawLineEx((Vector2){p1.x, p1.y}, (Vector2){p2.x, p2.y}, 1, c);
 }
 
 void b2DrawCircle(b2Vec2 center, float radius, b2HexColor color, void *context) {
