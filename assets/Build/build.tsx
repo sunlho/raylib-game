@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<tileset version="1.10" tiledversion="1.11.2" name="build" tilewidth="528" tileheight="577" tilecount="14" columns="0">
+<tileset version="1.10" tiledversion="1.11.2" name="build" tilewidth="528" tileheight="577" tilecount="15" columns="0">
  <grid orientation="orthogonal" width="1" height="1"/>
  <tile id="0">
   <image source="boat1.png" width="388" height="378"/>
@@ -73,15 +73,15 @@
   </objectgroup>
  </tile>
  <tile id="9">
-  <image source="house7.png" width="528" height="553"/>
-  <objectgroup draworder="index" id="2">
-   <object id="1" x="-1" y="312" width="35" height="40"/>
-   <object id="2" x="1" y="459" width="52" height="38"/>
-   <object id="4" x="25" y="389">
-    <polygon points="0,0 43,-68 136,-95 346,-98 430,-53 452,4 422,101 327,147 167,152 76,119 22,64"/>
+  <image source="house7.png" width="256" height="256"/>
+  <objectgroup draworder="index" id="4">
+   <object id="8" x="2" y="157.5" width="10" height="7"/>
+   <object id="11" x="2.5" y="224" width="19" height="7.5"/>
+   <object id="12" x="237" y="230.5" width="11" height="5.5"/>
+   <object id="16" x="28.5" y="162.5">
+    <polygon points="0,0 22,-22.5 58.5,-35 127.5,-35.5 167,-19 192,5.5 204.5,25.5 194.5,54.5 171,80.5 138,92 55,93 16,79 -4.5,51 -13.5,19"/>
    </object>
-   <object id="5" x="491" y="321" width="29" height="36"/>
-   <object id="6" x="496" y="467" width="32" height="30"/>
+   <object id="17" x="234.818" y="162" width="8.81818" height="4.72727"/>
   </objectgroup>
  </tile>
  <tile id="10">
@@ -116,5 +116,8 @@
     <ellipse/>
    </object>
   </objectgroup>
+ </tile>
+ <tile id="14">
+  <image source="obj_garden_of_stones_gnd.png" width="144" height="144"/>
  </tile>
 </tileset>

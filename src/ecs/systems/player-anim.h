@@ -53,7 +53,7 @@ static void UpdatePlayerAnim(ecs_iter_t *it) {
 
 void PlayerAnimImport(ecs_world_t *world) {
     ECS_MODULE(world, PlayerAnim);
-    ECS_SYSTEM(world, UpdatePlayerAnim, EcsOnUpdate, PlayerAnimController, PlayerAnimState);
+    // ECS_SYSTEM(world, UpdatePlayerAnim, EcsOnUpdate, PlayerAnimController, PlayerAnimState);
     // ECS_SYSTEM(world, DrawPlayerSprite, EcsOnUpdate, PlayerAnimController, PlayerAnimState, PlayerPhysics, Position);
 }
 

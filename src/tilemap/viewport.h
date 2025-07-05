@@ -12,7 +12,7 @@
 
 #define CULL_PADDING 0.0f
 
-void TilemapRegisterViewportCullingSystem();
+ecs_entity_t TilemapRegisterViewportCullingSystem();
 
 #endif // TILEMAP_VIEWPORT_H
 
@@ -50,6 +50,7 @@ static void UpdateChunkVisibility(ecs_iter_t *it) {
             }
         }
     }
+
     TilemapObject *head = tilemap_object_list;
     while (head) {
         ecs_entity_t entity = head->entity;
@@ -62,16 +63,18 @@ static void UpdateChunkVisibility(ecs_iter_t *it) {
     }
 }
 
-void TilemapRegisterViewportCullingSystem() {
+ecs_entity_t TilemapRegisterViewportCullingSystem() {
 
     ecs_entity_t system_entity = ecs_entity(
         tilemap_ecs_world,
         {
             .name = "TilemapViewportCullingSystem",
-            .add = ecs_ids(ecs_dependson(EcsOnUpdate)),
+            .add = ecs_ids(ecs_dependson(EcsPreUpdate)),
         });
 
     ecs_system(tilemap_ecs_world, {.entity = system_entity, .callback = UpdateChunkVisibility});
+
+    return system_entity;
 }
 
 #endif // TILEMAP_VIEWPORT_IMPLEMENTATION_ONCE

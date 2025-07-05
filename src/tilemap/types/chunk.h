@@ -8,18 +8,31 @@
 #include "tmx.h"
 
 typedef struct TilemapChunkTile {
-    int pos_x, pos_y;
-    tmx_tile *tile;
+    unsigned int tile_gid;
     Rectangle src_rect;
     Rectangle dest_rect;
     struct TilemapChunkTile *next;
 } TilemapChunkTile;
+
+typedef struct TilemapChunkAnimTile {
+    TilemapChunkTile *tile;
+    unsigned int current_frame;
+    unsigned int animation_len;
+    tmx_anim_frame *animation;
+    float start_time;
+    struct TilemapChunkAnimTile *next;
+} TilemapChunkAnimTile;
 
 typedef struct TilemapChunk {
     int chunk_x, chunk_y;
     Rectangle dest_rect;
     int layer_index;
     TilemapChunkTile *tiles;
+    TilemapChunkAnimTile *anim_tiles;
+
+    RenderTexture2D texture;
+    bool is_dirty;
+    bool initialized;
 } TilemapChunk;
 
 typedef struct TilemapChunkHashEntity {

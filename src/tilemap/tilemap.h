@@ -18,6 +18,7 @@
 #include "types/types.h"
 #include "utils.h"
 
+static tmx_map *tilemap_tmx_map = NULL;
 static ecs_world_t *tilemap_ecs_world = NULL;
 static b2WorldId tilemap_physics_world = {0};
 static const char *tilemap_collision_type = NULL;
@@ -44,7 +45,7 @@ static Camera2D *tilemap_world_camera = NULL;
 #define Tilemap(path, ...) \
     TilemapInit(path, (TilemapOptions)__VA_ARGS__)
 
-TilemapWorldSize TilemapInit(const char *path, TilemapOptions options);
+TilemapInstance TilemapInit(const char *path, TilemapOptions options);
 
 #endif // TILEMAP_H
 
@@ -52,7 +53,7 @@ TilemapWorldSize TilemapInit(const char *path, TilemapOptions options);
 #ifndef TILEMAP_IMPLEMENTATION_ONCE
 #define TILEMAP_IMPLEMENTATION_ONCE
 
-TilemapWorldSize TilemapInit(const char *path, TilemapOptions options) {
+TilemapInstance TilemapInit(const char *path, TilemapOptions options) {
     tilemap_ecs_world = options.world;
     tilemap_physics_world = options.physics_world;
     tilemap_collision_type = options.collision_type;
@@ -65,15 +66,20 @@ TilemapWorldSize TilemapInit(const char *path, TilemapOptions options) {
     TilemapRegisterCommonComponent();
 
     tmx_map *map = TilemapLoadTMX(path);
+    tilemap_tmx_map = map;
     TilemapHandleMap(map);
-    TilemapWorldSize world_size = {
-        .width = map->width * map->tile_width,
-        .height = map->height * map->tile_height,
-    };
 
     TilemapRegisterRenderSystem();
 
-    return world_size;
+    TilemapInstance instance = {
+        .size = (TilemapWorldSize){
+            .width = map->width * map->tile_width,
+            .height = map->height * map->tile_height,
+        },
+        .map = map,
+        .render = TilemapRenderManually,
+    };
+    return instance;
 }
 
 #endif // TILEMAP_IMPLEMENTATION_ONCE

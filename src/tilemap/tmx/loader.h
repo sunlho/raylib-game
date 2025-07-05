@@ -16,8 +16,6 @@ void *TilemapLoadTMXImage(const char *file_name) {
     Texture2D *texture = MemAlloc(sizeof(Texture2D));
     *texture = LoadTexture(file_name);
     SetTextureFilter(*texture, TEXTURE_FILTER_POINT);
-    SetTextureWrap(*texture, TEXTURE_WRAP_CLAMP);
-    texture->mipmaps = 1;
     return texture;
 }
 

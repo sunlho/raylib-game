@@ -24,4 +24,10 @@ typedef struct {
     double height;
 } TilemapWorldSize;
 
+typedef struct {
+    TilemapWorldSize size;
+    tmx_map *map;
+    void (*render)();
+} TilemapInstance;
+
 #endif // TILEMAP_TYPES_H

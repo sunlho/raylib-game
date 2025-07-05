@@ -30,6 +30,10 @@ static void SyncPositionSystem(ecs_iter_t *it) {
 
     for (int i = 0; i < it->count; i++) {
         b2Vec2 pos = b2Body_GetPosition(pb[i].body);
+        p[i].x = pos.x;
+        p[i].y = pos.y;
+
+        Vector2 target = Vector2Lerp(camera->target, (Vector2){p[i].x, p[i].y}, 1.0f);
 
         float half_w = (SCREEN_WIDTH / 2.0f) / camera->zoom;
         float half_h = (SCREEN_HEIGHT / 2.0f) / camera->zoom;
@@ -43,11 +47,7 @@ static void SyncPositionSystem(ecs_iter_t *it) {
         if (pos.y > GetWorldSize().height - half_h)
             pos.y = GetWorldSize().height - half_h;
 
-        camera->target = (Vector2){roundf(pos.x), roundf(pos.y)};
-        // TilemapUpdateWorldCamera(camera, pos.x, pos.y);
-
-        p[i].x = pos.x;
-        p[i].y = pos.y;
+        camera->target = target;
 
         td[i].sort_y = pos.y + 15.0f;
     }

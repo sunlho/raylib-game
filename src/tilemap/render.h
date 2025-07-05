@@ -8,6 +8,12 @@
 
 #include "utils.h"
 
+#define TILEMAP_VIEWPORT_IMPLEMENTATION
+#include "viewport.h"
+
+#define TILEMAP_ANIMATION_IMPLEMENTATION
+#include "animation.h"
+
 void TilemapRegisterRenderSystem();
 
 #endif // TILEMAP_RENDER_H
@@ -16,12 +22,11 @@ void TilemapRegisterRenderSystem();
 #ifndef TILEMAP_RENDER_IMPLEMENTATION_ONCE
 #define TILEMAP_RENDER_IMPLEMENTATION_ONCE
 
-#define TILEMAP_VIEWPORT_IMPLEMENTATION
-#include "viewport.h"
-
 ECS_COMPONENT_DECLARE(TilemapInView);
 extern ECS_COMPONENT_DECLARE(TilemapChunk);
 extern ECS_COMPONENT_DECLARE(TilemapDrawable);
+
+static ecs_query_t *chunk_render_query = NULL;
 
 static int CompareDrawableBySortY(ecs_entity_t e1, const void *ptr1, ecs_entity_t e2, const void *ptr2) {
     (void)e1;
@@ -52,6 +57,13 @@ static void RenderChunksSorted(ecs_iter_t *it) {
     }
 }
 
+void TilemapRenderManually() {
+    ecs_iter_t it = ecs_query_iter(tilemap_ecs_world, chunk_render_query);
+    while (ecs_query_next(&it)) {
+        RenderChunksSorted(&it);
+    }
+}
+
 void TilemapRegisterRenderSystem() {
     ECS_TAG(tilemap_ecs_world, render);
     ecs_set_scope(tilemap_ecs_world, render);
@@ -71,16 +83,10 @@ void TilemapRegisterRenderSystem() {
         .order_by = ecs_id(TilemapDrawable),
         .order_by_callback = CompareDrawableBySortY,
     };
+    chunk_render_query = ecs_query_init(tilemap_ecs_world, &chunk_query);
 
-    ecs_entity_t system_entity = ecs_entity(
-        tilemap_ecs_world,
-        {
-            .name = "TilemapRenderSystem",
-            .add = ecs_ids(ecs_dependson(EcsOnUpdate)),
-        });
-
-    TilemapRegisterViewportCullingSystem();
-    ecs_system(tilemap_ecs_world, {.entity = system_entity, .query = chunk_query, .callback = RenderChunksSorted});
+    ecs_entity_t culling_system = TilemapRegisterViewportCullingSystem();
+    TilemapRegisterAnimationSystem();
 }
 
 #endif // TILEMAP_RENDER_IMPLEMENTATION_ONCE
