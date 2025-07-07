@@ -88,8 +88,7 @@ int main(void) {
     while (!WindowShouldClose() && !ecs_should_quit(world)) {
         if (IsKeyPressed(KEY_R)) {
             ResetPlayerPosition(world);
-        }
-        if (IsKeyPressed(KEY_F3)) {
+        } else if (IsKeyPressed(KEY_F3)) {
             debug_mode = !debug_mode;
         }
 

@@ -38,14 +38,14 @@ static void SyncPositionSystem(ecs_iter_t *it) {
         float half_w = (SCREEN_WIDTH / 2.0f) / camera->zoom;
         float half_h = (SCREEN_HEIGHT / 2.0f) / camera->zoom;
 
-        if (pos.x < half_w)
-            pos.x = half_w;
-        if (pos.y < half_h)
-            pos.y = half_h;
-        if (pos.x > GetWorldSize().width - half_w)
-            pos.x = GetWorldSize().width - half_w;
-        if (pos.y > GetWorldSize().height - half_h)
-            pos.y = GetWorldSize().height - half_h;
+        if (target.x < half_w)
+            target.x = half_w;
+        if (target.y < half_h)
+            target.y = half_h;
+        if (target.x > GetWorldSize().width - half_w)
+            target.x = GetWorldSize().width - half_w;
+        if (target.y > GetWorldSize().height - half_h)
+            target.y = GetWorldSize().height - half_h;
 
         camera->target = target;
 

@@ -20,8 +20,8 @@ void TilemapHandleMap(tmx_map *map);
 #define TILEMAP_CHUNK_IMPLEMENTATION
 #include "chunk.h"
 
-ECS_COMPONENT_DECLARE(TilemapChunk);
-ECS_COMPONENT_DECLARE(TilemapDrawable);
+extern ECS_COMPONENT_DECLARE(TilemapDrawable);
+extern ECS_COMPONENT_DECLARE(TilemapChunk);
 extern ECS_COMPONENT_DECLARE(Rectangle);
 
 static void TilemapHandleAnimateTile() {
@@ -79,16 +79,17 @@ static void TilemapHandleLayerTiles(tmx_layer *layer, TilemapCtx *ctx) {
 
                         if (chunk_tile) {
                             chunk_tile->tile_gid = gid;
-                            chunk_tile->src_rect = src_rect;
                             chunk_tile->dest_rect = dest_rect;
                             chunk_tile->next = tiles;
                             tiles = chunk_tile;
                         }
                         if (tile->animation_len > 0 && tile->animation) {
+                            unsigned int first_gid = tmx_find_tileset_by_name(ctx->map, tile->tileset->name)->firstgid;
                             TilemapChunkAnimTile *anim_tile = MemAlloc(sizeof(TilemapChunkAnimTile));
                             if (anim_tile) {
                                 anim_tile->tile = chunk_tile;
                                 anim_tile->current_frame = 0;
+                                anim_tile->first_gid = first_gid;
                                 anim_tile->animation_len = tile->animation_len;
                                 anim_tile->animation = tile->animation;
                                 anim_tile->next = anim_tiles;
@@ -135,7 +136,6 @@ static void TilemapHandleLayerObjectGroup(tmx_object_group *object_group, Tilema
                 if (tile) {
                     double pos_x = ctx->pos_x + head->x;
                     double pos_y = ctx->pos_y + head->y - tile->height;
-                    Rectangle src_rect = {tile->ul_x, tile->ul_y, tile->width, tile->height};
                     Rectangle dest_rect = {pos_x, pos_y, tile->width, tile->height};
                     Rectangle dest_rect2 = {0, 0, tile->width, tile->height};
 
@@ -143,10 +143,25 @@ static void TilemapHandleLayerObjectGroup(tmx_object_group *object_group, Tilema
 
                     if (chunk_tile) {
                         chunk_tile->tile_gid = head->content.gid;
-                        chunk_tile->src_rect = src_rect;
                         chunk_tile->dest_rect = dest_rect;
                         chunk_tile->next = NULL;
                     }
+
+                    TilemapChunkAnimTile *anim_tile = NULL;
+
+                    if (tile->animation_len > 0 && tile->animation) {
+                        unsigned int first_gid = tmx_find_tileset_by_name(ctx->map, tile->tileset->name)->firstgid;
+                        anim_tile = MemAlloc(sizeof(TilemapChunkAnimTile));
+                        if (anim_tile) {
+                            anim_tile->tile = chunk_tile;
+                            anim_tile->current_frame = 0;
+                            anim_tile->first_gid = first_gid;
+                            anim_tile->animation_len = tile->animation_len;
+                            anim_tile->animation = tile->animation;
+                            anim_tile->next = NULL;
+                        }
+                    }
+
                     int chunk_x = (int)floor(pos_x / (CHUNK_SIZE * ctx->map->tile_width));
                     int chunk_y = (int)floor(pos_y / (CHUNK_SIZE * ctx->map->tile_height));
 
@@ -156,6 +171,7 @@ static void TilemapHandleLayerObjectGroup(tmx_object_group *object_group, Tilema
                         .dest_rect = dest_rect,
                         .layer_index = ctx->layer_index,
                         .tiles = chunk_tile,
+                        .anim_tiles = anim_tile,
                     };
                     int sort_y = GetLayerSortY(ctx->layer_index, pos_y + tile->height);
                     ecs_entity_t chunk = TilemapCreateChunkEntity(&chunk_data, sort_y, true);
@@ -168,47 +184,8 @@ static void TilemapHandleLayerObjectGroup(tmx_object_group *object_group, Tilema
 }
 
 void TilemapHandleMap(tmx_map *map) {
-
-    ECS_COMPONENT(tilemap_ecs_world, TilemapChunkTile);
-    ecs_struct(
-        tilemap_ecs_world,
-        {
-            .entity = ecs_id(TilemapChunkTile),
-            .members = {
-
-                {.name = "tile_gid", .type = ecs_id(ecs_u32_t)},
-                {.name = "src_rect", .type = ecs_id(Rectangle)},
-                {.name = "dest_rect", .type = ecs_id(Rectangle)},
-                {.name = "next", .type = ecs_id(ecs_iptr_t)},
-            },
-        });
-
-    ECS_COMPONENT_DEFINE(tilemap_ecs_world, TilemapChunk);
-
-    ecs_struct(
-        tilemap_ecs_world,
-        {
-            .entity = ecs_id(TilemapChunk),
-            .members = {
-                {.name = "chunk_x", .type = ecs_id(ecs_i32_t)},
-                {.name = "chunk_y", .type = ecs_id(ecs_i32_t)},
-                {.name = "dest_rect", .type = ecs_id(Rectangle)},
-                {.name = "layer_index", .type = ecs_id(ecs_i32_t)},
-                {.name = "tiles", .type = ecs_id(ecs_iptr_t)},
-            },
-        });
-    ECS_COMPONENT_DEFINE(tilemap_ecs_world, TilemapDrawable);
-    ecs_struct(
-        tilemap_ecs_world,
-        {
-            .entity = ecs_id(TilemapDrawable),
-            .members = {
-                {.name = "sort_y", .type = ecs_id(ecs_f32_t)},
-                {.name = "layer_index", .type = ecs_id(ecs_f32_t)},
-                {.name = "is_dynamic", .type = ecs_id(ecs_bool_t)},
-                {.name = "render_fn", .type = ecs_id(ecs_iptr_t)},
-            },
-        });
+    TilemapRegisterChunkComponent();
+    TilemapRegisterRenderComponent();
 
     TilemapCtx ctx = {map, 0, 0, 0};
     tmx_layer *layer = map->ly_head;

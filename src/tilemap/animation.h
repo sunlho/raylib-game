@@ -21,13 +21,13 @@ void TilemapAnimateTileSystem(ecs_iter_t *it) {
             if (!anim_tile->start_time) {
                 anim_tile->start_time = now;
             }
-            unsigned int current_frame = anim_tile->current_frame;
 
             float t = (now - anim_tile->start_time) * 1000.0f;
-            int frame_index = (int)(t / anim_tile->animation[current_frame].duration);
+            int frame_index = (int)(t / anim_tile->animation[anim_tile->current_frame].duration);
             frame_index %= anim_tile->animation_len;
+
             anim_tile->current_frame = frame_index;
-            anim_tile->tile->tile_gid = anim_tile->animation[frame_index].tile_id & TMX_FLIP_BITS_REMOVAL;
+            anim_tile->tile->tile_gid = (anim_tile->animation[frame_index].tile_id + anim_tile->first_gid) & TMX_FLIP_BITS_REMOVAL;
 
             anim_tile = anim_tile->next;
         }

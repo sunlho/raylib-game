@@ -38,9 +38,7 @@ static void TilemapChunkDraw(TilemapChunkTile *chunk_tile) {
             tmx_image *im = tile->image ? tile->image : tile->tileset->image;
             if (im && im->resource_image) {
                 Texture *image = (Texture *)im->resource_image;
-                if (image) {
-                    DrawTexturePro(*image, chunk_tile->src_rect, chunk_tile->dest_rect, (Vector2){0, 0}, 0, WHITE);
-                }
+                DrawTexturePro(*image, (Rectangle){tile->ul_x, tile->ul_y, tile->width, tile->height}, chunk_tile->dest_rect, (Vector2){0, 0}, 0, WHITE);
             }
             chunk_tile = chunk_tile->next;
         }
@@ -81,13 +79,15 @@ static void TilemapChunkCacheRender(ecs_world_t *world, ecs_entity_t entity) {
         }
 
         if (*tilemap_debug_mode) {
-            DrawRectangleLinesEx(chunk_data->dest_rect, 1, BLUE);
+            Color draw_color = BLUE;
+            draw_color.a = 128;
+            DrawRectangleLinesEx(chunk_data->dest_rect, 1, draw_color);
             DrawText(
                 TextFormat("(%d,%d)", chunk_data->chunk_x, chunk_data->chunk_y),
                 chunk_data->dest_rect.x + 5,
                 chunk_data->dest_rect.y + 5,
                 10,
-                BLUE);
+                draw_color);
         }
     }
 }
@@ -96,15 +96,16 @@ static void TilemapChunkRender(ecs_world_t *world, ecs_entity_t entity) {
     const TilemapChunk *chunk_data = ecs_get(world, entity, TilemapChunk);
     if (chunk_data && chunk_data->tiles) {
         TilemapChunkDraw(chunk_data->tiles);
-
         if (*tilemap_debug_mode) {
-            DrawRectangleLinesEx(chunk_data->dest_rect, 1, BLUE);
+            Color draw_color = BLUE;
+            draw_color.a = 128;
+            DrawRectangleLinesEx(chunk_data->dest_rect, 1, draw_color);
             DrawText(
                 TextFormat("(%d,%d)", chunk_data->chunk_x, chunk_data->chunk_y),
                 chunk_data->dest_rect.x + 5,
                 chunk_data->dest_rect.y + 5,
                 10,
-                BLUE);
+                draw_color);
         }
     }
 }

@@ -22,8 +22,8 @@ void TilemapRegisterRenderSystem();
 #ifndef TILEMAP_RENDER_IMPLEMENTATION_ONCE
 #define TILEMAP_RENDER_IMPLEMENTATION_ONCE
 
-ECS_COMPONENT_DECLARE(TilemapInView);
 extern ECS_COMPONENT_DECLARE(TilemapChunk);
+extern ECS_COMPONENT_DECLARE(TilemapInView);
 extern ECS_COMPONENT_DECLARE(TilemapDrawable);
 
 static ecs_query_t *chunk_render_query = NULL;
@@ -67,16 +67,6 @@ void TilemapRenderManually() {
 void TilemapRegisterRenderSystem() {
     ECS_TAG(tilemap_ecs_world, render);
     ecs_set_scope(tilemap_ecs_world, render);
-
-    ECS_COMPONENT_DEFINE(tilemap_ecs_world, TilemapInView);
-    ecs_struct(
-        tilemap_ecs_world,
-        {
-            .entity = ecs_id(TilemapInView),
-            .members = {
-                {.name = "frame", .type = ecs_id(ecs_f64_t)},
-            },
-        });
 
     ecs_query_desc_t chunk_query = {
         .terms = {{.id = ecs_id(TilemapDrawable)}, {.id = ecs_id(TilemapInView)}},
