@@ -13,14 +13,10 @@ b2WorldId InitPhysicsWorld(ecs_world_t *world);
 #define ECS_PHYSICS_WORLD_IMPLEMENTATION_ONLY
 
 void B2HexColorToRaylibColor(b2HexColor color, Color *c) {
-    // c->r = (color >> 16) & 0xFF;
-    // c->g = (color >> 8) & 0xFF;
-    // c->b = color & 0xFF;
-    // c->a = 255;
-    c->r = 0;
-    c->g = 0;
-    c->b = 255;
-    c->a = 255;
+    c->r = (color >> 16) & 0xFF;
+    c->g = (color >> 8) & 0xFF;
+    c->b = color & 0xFF;
+    c->a = 192;
 }
 
 void b2DrawPolygon(const b2Vec2 *vertices, int vertexCount, b2HexColor color, void *context) {
