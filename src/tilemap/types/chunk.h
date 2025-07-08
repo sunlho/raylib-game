@@ -52,6 +52,7 @@ typedef struct TilemapObject {
 } TilemapObject;
 
 ECS_COMPONENT_DECLARE(TilemapChunkTile);
+ECS_COMPONENT_DECLARE(TilemapChunkAnimTile);
 ECS_COMPONENT_DECLARE(TilemapChunk);
 extern ECS_COMPONENT_DECLARE(Rectangle);
 
@@ -64,7 +65,6 @@ static inline void TilemapRegisterChunkComponent() {
             .members = {
 
                 {.name = "tile_gid", .type = ecs_id(ecs_u32_t)},
-                {.name = "src_rect", .type = ecs_id(Rectangle)},
                 {.name = "dest_rect", .type = ecs_id(Rectangle)},
                 {.name = "next", .type = ecs_id(ecs_iptr_t)},
             },
@@ -76,11 +76,11 @@ static inline void TilemapRegisterChunkComponent() {
         {
             .entity = ecs_id(TilemapChunkAnimTile),
             .members = {
-                {.name = "tile", .type = ecs_id(TilemapChunkTile)},
+                {.name = "tile", .type = ecs_id(ecs_iptr_t)},
                 {.name = "current_frame", .type = ecs_id(ecs_u32_t)},
+                {.name = "first_gid", .type = ecs_id(ecs_u32_t)},
                 {.name = "animation_len", .type = ecs_id(ecs_u32_t)},
                 {.name = "animation", .type = ecs_id(ecs_iptr_t)},
-                {.name = "first_gid", .type = ecs_id(ecs_u32_t)},
                 {.name = "start_time", .type = ecs_id(ecs_f32_t)},
                 {.name = "next", .type = ecs_id(ecs_iptr_t)},
             },
